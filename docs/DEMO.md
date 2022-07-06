@@ -17,6 +17,8 @@ The entry point is `interactive_demo.py`. The command line arguments should be s
 
 ## Try it for yourself
 
+https://user-images.githubusercontent.com/7107196/177661140-f690156b-1775-4cd7-acd7-1738a5c92f30.mp4
+
 Right-click download this video (source: https://www.youtube.com/watch?v=FTcjzaqL0pE). Then run
 
 ```bash
