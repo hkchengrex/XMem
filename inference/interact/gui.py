@@ -14,7 +14,11 @@ but with XMem as the backbone and is more memory (for both CPU and GPU) friendly
 
 import functools
 
+import os
 import cv2
+# fix conflicts between qt5 and cv2
+os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
+
 import numpy as np
 import torch
 

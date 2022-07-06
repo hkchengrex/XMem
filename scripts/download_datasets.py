@@ -21,10 +21,11 @@ BIG: https://github.com/hkchengrex/CascadePSP
 YouTubeVOS: https://youtube-vos.org
 DAVIS: https://davischallenge.org/
 BL30K: https://github.com/hkchengrex/MiVOS
+Long-Time Video: https://github.com/xmlyqing00/AFB-URR
 """
 
 print(LICENSE)
-print('Datasets will be downloaded and extracted to ../YouTube, ../YouTube2018, ../static, ../DAVIS')
+print('Datasets will be downloaded and extracted to ../YouTube, ../YouTube2018, ../static, ../DAVIS, ../long_video_set')
 reply = input('[y] to confirm, others to exit: ')
 if reply != 'y':
     exit()

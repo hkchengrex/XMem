@@ -3,13 +3,10 @@ A simple user interface for XMem
 """
 
 import sys
-import os
 from os import path
-import functools
 from argparse import ArgumentParser
 
 import torch
-from yaml import parse
 
 from model.network import XMem
 from inference.interact.s2m_controller import S2MController
