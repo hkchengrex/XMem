@@ -4,7 +4,7 @@ saves/
 output/
 .vscode/
 workspace/
-*.sh
+run*.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -6,7 +6,7 @@
 
 University of Illinois Urbana-Champaign
 
-[[arXiv]] [[PDF]] [[Project Page]](https://hkchengrex.github.io/XMem/) [[Results]]
+[[arXiv]] [[PDF]] [[Project Page]](https://hkchengrex.github.io/XMem/)
 
 ## Features
 
@@ -16,18 +16,24 @@ University of Illinois Urbana-Champaign
 
 ### Table of Contents
 
-1. Introduction
-2. Results
-3. Interactive GUI demo
-4. Training/inference
-5. Citation
+- [XMem](#xmem)
+  - [Long-Term Video Object Segmentation with an Atkinson-Shiffrin Memory Model](#long-term-video-object-segmentation-with-an-atkinson-shiffrin-memory-model)
+  - [Features](#features)
+    - [Table of Contents](#table-of-contents)
+    - [Introduction](#introduction)
+    - [Results](#results)
+    - [Interactive GUI demo](#interactive-gui-demo)
+    - [Training/inference](#traininginference)
+    - [Citation](#citation)
 
 ### Introduction
+
+![framework](https://imgur.com/ToE2frx.jpg)
 
 We frame Video Object Segmentation (VOS), first and foremost, as a *memory* problem.
 Prior works mostly use a single type of feature memory. This can be in the form of network weights (i.e., online learning), last frame segmentation (e.g., MaskTrack), spatial hidden representation (e.g., Conv-RNN-based methods), spatial-attentional features (e.g., STM, STCN, AOT), or some sort of long-term compact features (e.g., AFB-URR).
 
-Methods that have a short memory span are not robust to changes while those with a large memory bank are subject to a catastrophic increase in computation and GPU memory usage. Attempts at long-term attentional VOS like AFB-URR compress features eagerly as soon as they are generated, leading to a loss of feature resolution.
+Methods with a short memory span are not robust to changes while those with a large memory bank are subject to a catastrophic increase in computation and GPU memory usage. Attempts at long-term attentional VOS like AFB-URR compress features eagerly as soon as they are generated, leading to a loss of feature resolution.
 
 Our method is inspired by the Atkinson-Shiffrin human memory model that has a *sensory memory*, a *working memory*, and a *long-term memory*. These memory stores have different temporal scales and complement each other in our memory reading mechanism. It performs well in both short-term and long-term video datasets, handling videos with more than 10,000 frames with ease.
 
@@ -37,7 +43,7 @@ Quantitative results, pre-trained models, and pre-computed results are provided 
 
 ### Interactive GUI demo
 
-[[Demo video using the GUI]]
+[[GUI demo video]]
 
 See [DEMO.md](docs/DEMO.md).
 
@@ -54,7 +60,7 @@ For inference, see [INFERENCE.md](docs/INFERENCE.md).
 Please cite our paper if you find this repo useful!
 
 ```bibtex
-@inproceedings{cheng2021xmem,
+@inproceedings{cheng2022xmem,
   title={{XMem}: Long-Term Video Object Segmentation with an Atkinson-Shiffrin Memory Model},
   author={Cheng, Ho Kei and Alexander G. Schwing},
   booktitle={ECCV},
