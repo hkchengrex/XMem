@@ -16,15 +16,11 @@ University of Illinois Urbana-Champaign
 
 ### Table of Contents
 
-- [XMem](#xmem)
-  - [Long-Term Video Object Segmentation with an Atkinson-Shiffrin Memory Model](#long-term-video-object-segmentation-with-an-atkinson-shiffrin-memory-model)
-  - [Features](#features)
-    - [Table of Contents](#table-of-contents)
-    - [Introduction](#introduction)
-    - [Results](#results)
-    - [Interactive GUI demo](#interactive-gui-demo)
-    - [Training/inference](#traininginference)
-    - [Citation](#citation)
+1. [Introduction](#introduction)
+2. [Results](#results)
+3. [Interactive GUI demo](#interactive-gui-demo)
+4. [Training/inference](#traininginference)
+5. [Citation](#citation)
 
 ### Introduction
 
@@ -159,5 +155,6 @@ bibtex
   year        = {2015}
 }
 ```
+</details>
 
 Contact: <hkchengrex@gmail.com>
