@@ -4,7 +4,7 @@ Our code is tested on Ubuntu. I have no idea how it will work on other operating
 
 ## Requirements
 
-* Python 3.7+
+* Python 3.8+
 * PyTorch 1.11+ (See [PyTorch](https://pytorch.org/) for installation instructions)
 * `torchvision` corresponding to the PyTorch version
 * OpenCV (try `pip install opencv-python`)
