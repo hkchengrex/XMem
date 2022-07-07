@@ -1,9 +1,9 @@
 # Inference
 
 1. Set up the datasets following [GETTING_STARTED.md](./GETTING_STARTED.md).
-2. Download the pretrained models either using `./scripts/download_models.sh`, or manually and put them in `./saves` (create the folder if it doesn't exist).
+2. Download the pretrained models either using `./scripts/download_models.sh`, or manually and put them in `./saves` (create the folder if it doesn't exist). You can download them from [[GitHub]](https://github.com/hkchengrex/XMem/releases/tag/v1.0) or [[Google Drive]](https://drive.google.com/drive/folders/1QYsog7zNzcxGXTGBzEhMUg8QVJwZB6D1?usp=sharing).
 
-All command-line inference are accessed with `eval.py`. See [RESULTS.md](./RESULTS.md) for explanation of FPS.
+All command-line inference are accessed with `eval.py`. See [RESULTS.md](./RESULTS.md) for an explanation of FPS and the differences between different models.
 
 ## Usage
 
