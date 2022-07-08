@@ -441,7 +441,7 @@ class App(QWidget):
         self.lcd.setText('{: 3d} / {: 3d}'.format(self.cursur, self.num_frames-1))
         self.tl_slider.setValue(self.cursur)
 
-    def get_scaled_pos(self, x, y):
+    def pixel_pos_to_image_pos(self, x, y):
         # Un-scale and un-pad the label coordinates into image coordinates
         oh, ow = self.image_size.height(), self.image_size.width()
         nh, nw = self.main_canvas_size.height(), self.main_canvas_size.width()
@@ -459,10 +459,26 @@ class App(QWidget):
         x -= (fw-ow)/2
         y -= (fh-oh)/2
 
+        return x, y
+
+    def is_pos_out_of_bound(self, x, y):
+        x, y = self.pixel_pos_to_image_pos(x, y)
+
+        out_of_bound = (
+            (x < 0) or
+            (y < 0) or
+            (x > self.width-1) or 
+            (y > self.height-1)
+        )
+
+        return out_of_bound
+
+    def get_scaled_pos(self, x, y):
+        x, y = self.pixel_pos_to_image_pos(x, y)
+
         x = max(0, min(self.width-1, x))
         y = max(0, min(self.height-1, y))
 
-        # return int(round(x)), int(round(y))
         return x, y
 
     def clear_visualization(self):
@@ -655,6 +671,9 @@ class App(QWidget):
                 (int(round(ex)), int(round(ey))), self.brush_size//2+1, 0.5, thickness=-1)
 
     def on_mouse_press(self, event):
+        if self.is_pos_out_of_bound(event.x(), event.y()):
+            return
+
         self.pressed = True
         self.right_click = (event.button() != 1)
 
@@ -718,6 +737,10 @@ class App(QWidget):
             self.interaction = None
 
     def on_mouse_release(self, event):
+        if not self.pressed:
+            # this can happen when the initial press is out-of-bound
+            return
+
         ex, ey = self.get_scaled_pos(event.x(), event.y())
 
         self.console_push_text('%s interaction at frame %d.' % (self.curr_interaction, self.cursur))
