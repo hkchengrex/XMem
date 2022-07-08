@@ -10,9 +10,10 @@ University of Illinois Urbana-Champaign
 
 ## Demo
 
-https://user-images.githubusercontent.com/7107196/177921203-689b9b8b-2dfc-4bc6-a5dc-cfc241afa003.mp4
 
-https://user-images.githubusercontent.com/7107196/177920950-47532862-4fb2-448a-b382-4719980f923d.mp4
+https://user-images.githubusercontent.com/7107196/177921527-7a1bd593-2162-4598-9adf-f2112763fccf.mp4
+
+https://user-images.githubusercontent.com/7107196/177921557-9df30b58-0805-4c03-a455-2cd3297ba851.mp4
 
 Source: https://www.youtube.com/watch?v=q5Xr0F4a0iU
 
