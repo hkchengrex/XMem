@@ -10,13 +10,13 @@ University of Illinois Urbana-Champaign
 
 ## Demo
 
-https://user-images.githubusercontent.com/7107196/177660624-0c213160-5033-4b76-9245-7c9a07c8bd4f.mp4
+https://user-images.githubusercontent.com/7107196/177921203-689b9b8b-2dfc-4bc6-a5dc-cfc241afa003.mp4
 
-https://user-images.githubusercontent.com/7107196/177660704-1d19ba24-90f9-4353-b31d-8e39d2927306.mp4
+https://user-images.githubusercontent.com/7107196/177920950-47532862-4fb2-448a-b382-4719980f923d.mp4
 
 Source: https://www.youtube.com/watch?v=q5Xr0F4a0iU
 
-https://user-images.githubusercontent.com/7107196/177660757-832e88e6-a664-4237-ae8b-6b115f139510.mp4
+https://user-images.githubusercontent.com/7107196/177920383-161f1da1-33f9-48b3-b8b2-09e450432e2b.mp4
 
 Source: かぐや様は告らせたい ～天才たちの恋愛頭脳戦～ Ep.3; A1 Pictures
 
