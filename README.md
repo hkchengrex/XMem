@@ -21,7 +21,6 @@ https://user-images.githubusercontent.com/7107196/177920383-161f1da1-33f9-48b3-b
 
 Source: かぐや様は告らせたい ～天才たちの恋愛頭脳戦～ Ep.3; A1 Pictures
 
-
 ## Features
 
 * Handle very long videos with limited GPU memory usage.
@@ -33,8 +32,6 @@ Source: かぐや様は告らせたい ～天才たちの恋愛頭脳戦～ Ep.3
 1. [Introduction](#introduction)
 2. [Results](#results)
 3. [Interactive GUI demo](#interactive-gui-demo)
-
-
 4. [Training/inference](#traininginference)
 5. [Citation](#citation)
 
