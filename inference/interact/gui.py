@@ -67,20 +67,20 @@ class App(QWidget):
 
         # some buttons
         self.play_button = QPushButton('Play Video')
-        self.play_button.clicked.connect(self.on_play)
+        self.play_button.clicked.connect(self.on_play_video)
         self.commit_button = QPushButton('Commit')
         self.commit_button.clicked.connect(self.on_commit)
 
         self.forward_run_button = QPushButton('Forward Propagate')
-        self.forward_run_button.clicked.connect(self.on_forward_run)
+        self.forward_run_button.clicked.connect(self.on_forward_propagation)
         self.forward_run_button.setMinimumWidth(200)
 
         self.backward_run_button = QPushButton('Backward Propagate')
-        self.backward_run_button.clicked.connect(self.on_backward_run)
+        self.backward_run_button.clicked.connect(self.on_backward_propagation)
         self.backward_run_button.setMinimumWidth(200)
 
         self.reset_button = QPushButton('Reset Frame')
-        self.reset_button.clicked.connect(self.on_reset)
+        self.reset_button.clicked.connect(self.on_reset_mask)
 
         # LCD
         self.lcd = QTextEdit()
@@ -140,10 +140,10 @@ class App(QWidget):
         self.main_canvas.setAlignment(Qt.AlignCenter)
         self.main_canvas.setMinimumSize(100, 100)
 
-        self.main_canvas.mousePressEvent = self.on_press
-        self.main_canvas.mouseMoveEvent = self.on_motion
+        self.main_canvas.mousePressEvent = self.on_mouse_press
+        self.main_canvas.mouseMoveEvent = self.on_mouse_motion
         self.main_canvas.setMouseTracking(True) # Required for all-time tracking
-        self.main_canvas.mouseReleaseEvent = self.on_release
+        self.main_canvas.mouseReleaseEvent = self.on_mouse_release
 
         # Minimap -> Also a QLbal
         self.minimap = QLabel()
@@ -308,8 +308,8 @@ class App(QWidget):
             QShortcut(QKeySequence(str(i)), self).activated.connect(functools.partial(self.hit_number_key, i))
 
         # <- and -> shortcuts
-        QShortcut(QKeySequence(Qt.Key_Left), self).activated.connect(self.on_prev)
-        QShortcut(QKeySequence(Qt.Key_Right), self).activated.connect(self.on_next)
+        QShortcut(QKeySequence(Qt.Key_Left), self).activated.connect(self.on_prev_frame)
+        QShortcut(QKeySequence(Qt.Key_Right), self).activated.connect(self.on_next_frame)
 
         self.interacted_prob = None
 
@@ -507,25 +507,25 @@ class App(QWidget):
             # Initialization, forget about it
             pass
 
-    def on_forward_run(self):
+    def on_forward_propagation(self):
         if self.propagating:
             # acts as a pause button
             self.on_pause()
         else:
-            self.propagate_fn = self.on_next
+            self.propagate_fn = self.on_next_frame
             self.backward_run_button.setEnabled(False)
             self.forward_run_button.setText('Pause Propagation')
-            self.on_run()
+            self.on_propagation()
 
-    def on_backward_run(self):
+    def on_backward_propagation(self):
         if self.propagating:
             # acts as a pause button
             self.on_pause()
         else:
-            self.propagate_fn = self.on_prev
+            self.propagate_fn = self.on_prev_frame
             self.forward_run_button.setEnabled(False)
             self.backward_run_button.setText('Pause Propagation')
-            self.on_run()
+            self.on_propagation()
 
     def on_pause(self):
         self.propagating = False
@@ -536,7 +536,7 @@ class App(QWidget):
         self.backward_run_button.setText('Backward Propagate')
         self.console_push_text('Propagation stopped.')
 
-    def on_run(self):
+    def on_propagation(self):
         # start to propagate
         self.load_current_torch_image_mask()
 
@@ -581,23 +581,23 @@ class App(QWidget):
         self.complete_interaction()
         self.update_interacted_mask()
 
-    def on_prev(self):
+    def on_prev_frame(self):
         # self.tl_slide will trigger on setValue
         self.cursur = max(0, self.cursur-1)
         self.tl_slider.setValue(self.cursur)
 
-    def on_next(self):
+    def on_next_frame(self):
         # self.tl_slide will trigger on setValue
         self.cursur = min(self.cursur+1, self.num_frames-1)
         self.tl_slider.setValue(self.cursur)
 
-    def on_time(self):
+    def on_play_video_timer(self):
         self.cursur += 1
         if self.cursur > self.num_frames-1:
             self.cursur = 0
         self.tl_slider.setValue(self.cursur)
 
-    def on_play(self):
+    def on_play_video(self):
         if self.timer.isActive():
             self.timer.stop()
             self.play_button.setText('Play Video')
@@ -605,7 +605,7 @@ class App(QWidget):
             self.timer.start(1000 / 30)
             self.play_button.setText('Stop Video')
 
-    def on_reset(self):
+    def on_reset_mask(self):
         self.current_mask.fill(0)
         if self.current_prob is not None:
             self.current_prob.fill_(0)
@@ -654,7 +654,7 @@ class App(QWidget):
         self.brush_vis_alpha = cv2.circle(self.brush_vis_alpha, 
                 (int(round(ex)), int(round(ey))), self.brush_size//2+1, 0.5, thickness=-1)
 
-    def on_press(self, event):
+    def on_mouse_press(self, event):
         self.pressed = True
         self.right_click = (event.button() != 1)
 
@@ -688,9 +688,9 @@ class App(QWidget):
             self.interaction = new_interaction
 
         # Just motion it as the first step
-        self.on_motion(event)
+        self.on_mouse_motion(event)
 
-    def on_motion(self, event):
+    def on_mouse_motion(self, event):
         ex, ey = self.get_scaled_pos(event.x(), event.y())
         self.last_ex, self.last_ey = ex, ey
         self.clear_brush()
@@ -717,14 +717,14 @@ class App(QWidget):
             self.clear_visualization()
             self.interaction = None
 
-    def on_release(self, event):
+    def on_mouse_release(self, event):
         ex, ey = self.get_scaled_pos(event.x(), event.y())
 
         self.console_push_text('%s interaction at frame %d.' % (self.curr_interaction, self.cursur))
         interaction = self.interaction
 
         if self.curr_interaction == 'Scribble' or self.curr_interaction == 'Free':
-            self.on_motion(event)
+            self.on_mouse_motion(event)
             interaction.end_path()
             if self.curr_interaction == 'Free':
                 self.clear_visualization()
