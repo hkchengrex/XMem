@@ -46,8 +46,8 @@ def overlay_davis(image, mask, alpha=0.5):
     binary_mask = (mask > 0)
     # Compose image
     im_overlay[binary_mask] = foreground[binary_mask]
-    countours = binary_dilation(binary_mask) ^ binary_mask
-    im_overlay[countours,:] = 0
+    # countours = binary_dilation(binary_mask) ^ binary_mask
+    # im_overlay[countours,:] = 0
     return im_overlay.astype(image.dtype)
 
 def overlay_davis_fade(image, mask, alpha=0.5):
@@ -58,8 +58,8 @@ def overlay_davis_fade(image, mask, alpha=0.5):
     binary_mask = (mask > 0)
     # Compose image
     im_overlay[binary_mask] = foreground[binary_mask]
-    countours = binary_dilation(binary_mask) ^ binary_mask
-    im_overlay[countours,:] = 0
+    # countours = binary_dilation(binary_mask) ^ binary_mask
+    # im_overlay[countours,:] = 0
     im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
     return im_overlay.astype(image.dtype)
 
