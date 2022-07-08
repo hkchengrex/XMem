@@ -16,7 +16,7 @@ We provide four pretrained models for download:
 
 1. XMem.pth (Default)
 2. XMem-s012.pth (Trained with BL30K)
-3. XMem-s2.pth (No pretraining)
+3. XMem-s2.pth (No pretraining on static images)
 4. XMem-no-sensory (No sensory memory)
 
 The model without pretraining is for reference. The model without sensory memory might be more suitable for tasks without spatial continuity, like mask tracking in a multi-camera 3D reconstruction setting, though I would encourage you to try the base model as well.
