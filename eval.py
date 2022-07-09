@@ -165,7 +165,7 @@ for vid_reader in progressbar(meta_loader, max_value=len(meta_dataset), redirect
 
     for ti, data in enumerate(loader):
         with torch.cuda.amp.autocast(enabled=not args.benchmark):
-            rgb = data['rgb'].cuda()
+            rgb = data['rgb'].cuda()[0]
             msk = data.get('mask')
             info = data['info']
             frame = info['frame'][0]

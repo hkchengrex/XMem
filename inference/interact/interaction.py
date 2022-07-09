@@ -12,7 +12,6 @@ import torch.nn.functional as F
 import numpy as np
 import cv2
 import time
-from util.tensor_util import pad_divide_by, unpad
 from .interactive_utils import color_map, index_numpy_to_one_hot_torch
 
 
@@ -190,7 +189,7 @@ class ScribbleInteraction(Interaction):
         self.curr_path = [[] for _ in range(self.K + 1)]
 
     def predict(self):
-        self.out_prob = self.controller.interact(self.image, self.prev_mask, self.drawn_map)
+        self.out_prob = self.controller.interact(self.image.unsqueeze(0), self.prev_mask, self.drawn_map)
         self.out_prob = aggregate_wbg(self.out_prob, keep_bg=True, hard=True)
         return self.out_prob
 
@@ -221,7 +220,7 @@ class ClickInteraction(Interaction):
             self.pos_clicks.append((x, y))
 
         # Do the prediction
-        self.obj_mask = self.controller.interact(self.image, x, y, not neg)
+        self.obj_mask = self.controller.interact(self.image.unsqueeze(0), x, y, not neg)
 
         # Plot visualization
         if vis is not None:
@@ -244,9 +243,10 @@ class ClickInteraction(Interaction):
             return vis_map, vis_alpha
 
     def predict(self):
-        if self.obj_mask is None:
-            self.out_prob = self.prev_mask.clone()
-        else:
-            self.out_prob[self.tar_obj] = self.obj_mask
+        self.out_prob = self.prev_mask.clone()
+        # a small hack to allow the interacting object to override existing masks
+        # without remembering all the object probabilities
+        self.out_prob = torch.clamp(self.out_prob, max=0.9)
+        self.out_prob[self.tar_obj] = self.obj_mask
         self.out_prob = aggregate_wbg(self.out_prob[1:], keep_bg=True, hard=True)
         return self.out_prob

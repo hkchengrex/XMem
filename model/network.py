@@ -15,9 +15,13 @@ from model.memory_util import *
 
 
 class XMem(nn.Module):
-    def __init__(self, config, model_path=None):
+    def __init__(self, config, model_path=None, map_location=None):
+        """
+        model_path/map_location are used in evaluation only
+        map_location is for converting models saved in cuda to cpu
+        """
         super().__init__()
-        model_weights = self.init_hyperparameters(config, model_path)
+        model_weights = self.init_hyperparameters(config, model_path, map_location)
 
         self.single_object = config.get('single_object', False)
         print(f'Single object mode: {self.single_object}')
@@ -31,7 +35,7 @@ class XMem(nn.Module):
         self.decoder = Decoder(self.value_dim, self.hidden_dim)
 
         if model_weights is not None:
-            self.load_weights(model_weights)
+            self.load_weights(model_weights, init_as_zero_if_needed=True)
 
     def encode_key(self, frame, need_sk=True, need_ek=True): 
         # Determine input shape
@@ -127,7 +131,7 @@ class XMem(nn.Module):
         else:
             raise NotImplementedError
 
-    def init_hyperparameters(self, config, model_path=None):
+    def init_hyperparameters(self, config, model_path=None, map_location=None):
         """
         Init three hyperparameters: key_dim, value_dim, and hidden_dim
         If model_path is provided, we load these from the model weights
@@ -138,7 +142,7 @@ class XMem(nn.Module):
         if model_path is not None:
             # load the model and key/value/hidden dimensions with some hacks
             # config is updated with the loaded parameters
-            model_weights = torch.load(model_path)
+            model_weights = torch.load(model_path, map_location=map_location)
             self.key_dim = model_weights['key_proj.key_proj.weight'].shape[0]
             self.value_dim = model_weights['value_encoder.fuser.block2.conv2.weight'].shape[0]
             self.disable_hidden = 'decoder.hidden_update.transform.weight' not in model_weights
@@ -147,7 +151,7 @@ class XMem(nn.Module):
             else:
                 self.hidden_dim = model_weights['decoder.hidden_update.transform.weight'].shape[0]//3
             print(f'Hyperparameters read from the model weights: '
-                    f'{self.key_dim=}, {self.value_dim=}, {self.hidden_dim=}')
+                    f'C^k={self.key_dim}, C^v={self.value_dim}, C^h={self.hidden_dim}')
         else:
             model_weights = None
             # load dimensions from config or default

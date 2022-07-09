@@ -11,7 +11,7 @@ from dataset.range_transform import im_normalization
 def image_to_torch(frame: np.ndarray, device='cuda'):
     # frame: H*W*3 numpy array
     frame = frame.transpose(2, 0, 1)
-    frame = torch.from_numpy(frame).float().unsqueeze(0).to(device)/255
+    frame = torch.from_numpy(frame).float().to(device)/255
     frame_norm = im_normalization(frame)
     return frame_norm, frame
 
@@ -35,7 +35,8 @@ color_map = [
 ]
 
 color_map_np = np.array(color_map)
-color_map_torch = torch.from_numpy(color_map_np).cuda() / 255
+if torch.cuda.is_available():
+    color_map_torch = torch.from_numpy(color_map_np).cuda() / 255
 
 def overlay_davis(image, mask, alpha=0.5):
     """ Overlay segmentation on top of RGB image. from davis official"""
@@ -66,7 +67,7 @@ def overlay_davis_fade(image, mask, alpha=0.5):
 def overlay_davis_torch(image, mask, alpha=0.5):
     """ Overlay segmentation on top of RGB image. from davis official"""
     # Changes the image in-place to avoid copying
-    image = image[0].permute(1, 2, 0)
+    image = image.permute(1, 2, 0)
     im_overlay = image
     mask = torch.argmax(mask, dim=0)
 
@@ -85,7 +86,7 @@ def overlay_davis_torch(image, mask, alpha=0.5):
 
 def overlay_davis_fade_torch(image, mask, alpha=0.5):
     # Changes the image in-place to avoid copying
-    image = image[0].permute(1, 2, 0)
+    image = image.permute(1, 2, 0)
     im_overlay = image
     mask = torch.argmax(mask, dim=0)
 
