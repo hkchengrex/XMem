@@ -13,7 +13,7 @@ For interactions, we use [f-BRS](https://github.com/saic-vul/fbrs_interactive_se
 
 The entry point is `interactive_demo.py`. The command line arguments should be self-explanatory.
 
-## Demo Videos
+![gui](https://imgur.com/7ac7vga.jpg)
 
 ## Try it for yourself
 
