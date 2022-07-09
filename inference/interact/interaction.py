@@ -244,7 +244,7 @@ class ClickInteraction(Interaction):
 
     def predict(self):
         self.out_prob = self.prev_mask.clone()
-        # a small hack to allow the interacting object to override existing masks
+        # a small hack to allow the interacting object to overwrite existing masks
         # without remembering all the object probabilities
         self.out_prob = torch.clamp(self.out_prob, max=0.9)
         self.out_prob[self.tar_obj] = self.obj_mask
