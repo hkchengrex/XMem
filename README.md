@@ -30,7 +30,7 @@ Source: かぐや様は告らせたい ～天才たちの恋愛頭脳戦～ Ep.3
 
 1. [Introduction](#introduction)
 2. [Results](#results)
-3. [Interactive GUI demo](#interactive-gui-demo)
+3. [Interactive GUI demo](docs/DEMO.md)
 4. [Training/inference](#traininginference)
 5. [Citation](#citation)
 
@@ -48,12 +48,6 @@ Our method is inspired by the Atkinson-Shiffrin human memory model that has a *s
 ### Results
 
 Quantitative results, pre-trained models, and pre-computed results are provided in [RESULTS.md](docs/RESULTS.md).
-
-### Interactive GUI demo
-
-[[GUI demo video]]
-
-See [DEMO.md](docs/DEMO.md).
 
 ### Training/inference
 

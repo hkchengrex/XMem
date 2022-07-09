@@ -2,8 +2,12 @@
 A simple user interface for XMem
 """
 
+import os
+# fix for Windows
+if 'QT_QPA_PLATFORM_PLUGIN_PATH' not in os.environ:
+    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = ''
+
 import sys
-from os import path
 from argparse import ArgumentParser
 
 import torch

@@ -526,7 +526,7 @@ class App(QWidget):
     def on_forward_propagation(self):
         if self.propagating:
             # acts as a pause button
-            self.on_pause()
+            self.propagating = False
         else:
             self.propagate_fn = self.on_next_frame
             self.backward_run_button.setEnabled(False)
@@ -536,7 +536,7 @@ class App(QWidget):
     def on_backward_propagation(self):
         if self.propagating:
             # acts as a pause button
-            self.on_pause()
+            self.propagating = False
         else:
             self.propagate_fn = self.on_prev_frame
             self.forward_run_button.setEnabled(False)

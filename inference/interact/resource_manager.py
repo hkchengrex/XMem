@@ -54,7 +54,9 @@ class ResourceManager:
 
         # convert read functions to be buffered
         self.get_image = lru_cache(maxsize=config['buffer_size'])(self._get_image_unbuffered)
-        self.get_mask = lru_cache(maxsize=config['buffer_size'])(self._get_mask_unbuffered)
+        # The check itself should not be buffered
+        self._get_mask_buffered_without_check = lru_cache(maxsize=config['buffer_size'])(
+                                    self._get_mask_unbuffered_without_check)
 
         # extract frames from video
         if need_decoding:
@@ -130,15 +132,19 @@ class ResourceManager:
         image = np.array(image)
         return image
 
-    def _get_mask_unbuffered(self, ti):
+    def _get_mask_unbuffered_without_check(self, ti):
+        # returns H*W uint8 array
+        mask = Image.open(path.join(self.mask_dir, self.names[ti]+'.png'))
+        mask = np.array(mask)
+        return mask
+
+    def get_mask(self, ti):
         # returns H*W uint8 array
         assert 0 <= ti < self.length
 
         mask_path = path.join(self.mask_dir, self.names[ti]+'.png')
         if path.exists(mask_path):
-            image = Image.open(path.join(self.mask_dir, self.names[ti]+'.png'))
-            image = np.array(image)
-            return image
+            return self._get_mask_buffered_without_check(ti)
         else:
             # no mask there
             return None
