@@ -121,8 +121,16 @@ class MemoryManager:
             # No long-term memory
             similarity = get_similarity(self.work_mem.key, self.work_mem.shrinkage, query_key, selection)
 
-            affinity, usage = do_softmax(similarity, inplace=(num_groups==1), 
-                top_k=self.top_k, return_usage=self.enable_long_term)
+            if self.enable_long_term:
+                affinity, usage = do_softmax(similarity, inplace=(num_groups==1), 
+                    top_k=self.top_k, return_usage=True)
+
+                # Record memory usage for working memory
+                self.work_mem.update_usage(usage.flatten())
+            else:
+                affinity = do_softmax(similarity, inplace=(num_groups==1), 
+                    top_k=self.top_k, return_usage=False)
+
             affinity = [affinity]
 
             # compute affinity group by group as later groups only have a subset of keys
@@ -132,9 +140,6 @@ class MemoryManager:
                 affinity.append(affinity_one_group)
                 
             all_memory_value = self.work_mem.value
-
-            # Record memory usage for working memory
-            self.work_mem.update_usage(usage.flatten())
 
         # Shared affinity within each group
         all_readout_mem = torch.cat([
