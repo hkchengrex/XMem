@@ -89,6 +89,8 @@ Related projects that this paper is developed upon:
 }
 ```
 
+We use f-BRS in the interactive demo: https://github.com/saic-vul/fbrs_interactive_segmentation
+
 And if you want to cite the datasets:
 
 <details> 
