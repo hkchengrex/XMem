@@ -10,11 +10,17 @@ University of Illinois Urbana-Champaign
 
 ## Demo
 
+Handling long-term occlusion:
+
 https://user-images.githubusercontent.com/7107196/177921527-7a1bd593-2162-4598-9adf-f2112763fccf.mp4
+
+Very-long video; masked layer insertion:
 
 https://user-images.githubusercontent.com/7107196/177921557-9df30b58-0805-4c03-a455-2cd3297ba851.mp4
 
 Source: https://www.youtube.com/watch?v=q5Xr0F4a0iU
+
+Out-of-domain case:
 
 https://user-images.githubusercontent.com/7107196/177920383-161f1da1-33f9-48b3-b8b2-09e450432e2b.mp4
 
