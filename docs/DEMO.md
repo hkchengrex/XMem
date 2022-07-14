@@ -35,12 +35,12 @@ python interactive_demo.py --video [path to the video] --num_objects 4
 ## Controls
 
 * Use the slider to change the current frame. "Play Video" automatically progresses the video.
-* Select interaction type: "scribble", "click", or "free". Both scribble and "free" (free-hand drawing) can modify an existing mask. Using click on an existing object mask (i.e., a mask from propagation, or other interaction methods) will reset the mask. This is because f-BRS does not take an existing mask as input.
-* Select the target object using the number keys. "1" corresponds to the first object, etc. You need to specify the maximum number of objects in program start-up through command line.
+* Select interaction type: "scribble", "click", or "free". Both scribble and "free" (free-hand drawing) modify an existing mask. Using click on an existing object mask (i.e., a mask from propagation, or other interaction methods) will reset the mask. This is because f-BRS does not take an existing mask as input.
+* Select the target object using the number keys. "1" corresponds to the first object, etc. You need to specify the maximum number of objects when you start the program through command line.
 * Use propagate forward/backward to let XMem do the job. Pause when correction is needed. It will only automatically stops when it hits the end of the video.
 * Make sure all objects are correctly labeled before propagating. The program doesn't care which object you have interacted with -- it treats everything as user-provided inputs. Not labeling an object implicitly means that it is part of the background.
-* The memory bank might be "polluted" with bad memory frames. Feel free to hit clear memory to erase that.
-* All output masks are automatically saved in the workspace directory.
+* The memory bank might be "polluted" by bad memory frames. Feel free to hit clear memory to erase that. Propagation runs faster with a small memory bank.
+* All output masks are automatically saved in the workspace directory, which is printed when the program starts.
 
 ## FAQ
 

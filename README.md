@@ -6,7 +6,7 @@
 
 University of Illinois Urbana-Champaign
 
-[[arXiv]] [[PDF]] [[Project Page]](https://hkchengrex.github.io/XMem/) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RXK5QsUo2-CnOiy5AOSjoZggPVHOPh1m?usp=sharing)
+[[arXiv]] (coming soon) [[PDF]] (coming soon) [[Project Page]](https://hkchengrex.github.io/XMem/) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RXK5QsUo2-CnOiy5AOSjoZggPVHOPh1m?usp=sharing)
 
 ## Demo
 
@@ -29,7 +29,7 @@ Source: かぐや様は告らせたい ～天才たちの恋愛頭脳戦～ Ep.3
 ### Table of Contents
 
 1. [Introduction](#introduction)
-2. [Results](#results)
+2. [Results](docs/RESULTS.md)
 3. [Interactive GUI demo](docs/DEMO.md)
 4. [Training/inference](#traininginference)
 5. [Citation](#citation)
@@ -44,10 +44,6 @@ Prior works mostly use a single type of feature memory. This can be in the form 
 Methods with a short memory span are not robust to changes while those with a large memory bank are subject to a catastrophic increase in computation and GPU memory usage. Attempts at long-term attentional VOS like AFB-URR compress features eagerly as soon as they are generated, leading to a loss of feature resolution.
 
 Our method is inspired by the Atkinson-Shiffrin human memory model that has a *sensory memory*, a *working memory*, and a *long-term memory*. These memory stores have different temporal scales and complement each other in our memory reading mechanism. It performs well in both short-term and long-term video datasets, handling videos with more than 10,000 frames with ease.
-
-### Results
-
-Quantitative results, pre-trained models, and pre-computed results are provided in [RESULTS.md](docs/RESULTS.md).
 
 ### Training/inference
 
