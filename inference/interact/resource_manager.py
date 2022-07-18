@@ -71,7 +71,7 @@ class ResourceManager:
         self.names = [f[:-4] for f in self.names] # remove extensions
         self.length = len(self.names)
 
-        assert self.length > 0, 'No images found!'
+        assert self.length > 0, f'No images found! Check {self.workspace}/images. Remove folder if necessary.'
 
         print(f'{self.length} images found.')
 
