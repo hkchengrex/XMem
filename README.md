@@ -26,6 +26,8 @@ https://user-images.githubusercontent.com/7107196/177920383-161f1da1-33f9-48b3-b
 
 Source: かぐや様は告らせたい ～天才たちの恋愛頭脳戦～ Ep.3; A1 Pictures
 
+#### [[Failure Cases]](docs/FAILURE_CASES.md)
+
 ## Features
 
 * Handle very long videos with limited GPU memory usage.
