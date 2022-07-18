@@ -134,11 +134,8 @@ torch.autograd.set_grad_enabled(False)
 meta_loader = meta_dataset.get_datasets()
 
 # Load our checkpoint
-network = XMem(config, args.model).cuda().eval()
-if args.model is not None:
-    model_weights = torch.load(args.model)
-    network.load_weights(model_weights, init_as_zero_if_needed=True)
-else:
+network = XMem(config, args.model, init_as_zero_if_needed=True).cuda().eval()
+if args.model is None:
     print('No model loaded.')
 
 total_process_time = 0

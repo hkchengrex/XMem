@@ -4,12 +4,13 @@ import torch
 from typing import Optional
 
 
-def get_similarity(mk, ms, qk, qe):
+def get_similarity(mk, ms, qk, qe, dustbin_tol=None):
     # used for training/inference and memory reading/memory potentiation
     # mk: B x CK x [N]    - Memory keys
     # ms: B x  1 x [N]    - Memory shrinkage
     # qk: B x CK x [HW/P] - Query keys
     # qe: B x CK x [HW/P] - Query selection
+    # dustbin_tol can be ignored. It is only used for the GUI
     # Dimensions in [] are flattened
     CK = mk.shape[1]
     mk = mk.flatten(start_dim=2)
@@ -35,6 +36,11 @@ def get_similarity(mk, ms, qk, qe):
         similarity = similarity * ms / math.sqrt(CK)   # B*N*HW
     else:
         similarity = similarity / math.sqrt(CK)   # B*N*HW
+
+    if dustbin_tol is not None:
+        dustbin_tol = dustbin_tol.view(1, 1, 1)
+        dustbin_tol = dustbin_tol.expand(similarity.shape[0], -1, similarity.shape[2])
+        similarity = torch.cat([similarity, dustbin_tol], dim=1)
 
     return similarity
 

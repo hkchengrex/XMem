@@ -15,7 +15,7 @@ from model.memory_util import *
 
 
 class XMem(nn.Module):
-    def __init__(self, config, model_path=None, map_location=None):
+    def __init__(self, config, model_path=None, map_location=None, init_as_zero_if_needed=False):
         """
         model_path/map_location are used in evaluation only
         map_location is for converting models saved in cuda to cpu
@@ -34,6 +34,7 @@ class XMem(nn.Module):
 
         self.decoder = Decoder(self.value_dim, self.hidden_dim)
 
+        self.dustbin_enabled = False
         if model_weights is not None:
             self.load_weights(model_weights, init_as_zero_if_needed=True)
 
@@ -194,5 +195,13 @@ class XMem(nn.Module):
                     else:
                         print('Zero-initialized padding.')
                     src_dict[k] = torch.cat([src_dict[k], pads], 1)
+
+        if 'dustbin_tol' in src_dict:
+            self.dustbin_enabled = True
+            print('Dustbin enabled.')
+            self.dustbin_tol = src_dict['dustbin_tol']
+            self.dustbin_val = src_dict['dustbin_val']
+            del src_dict['dustbin_tol']
+            del src_dict['dustbin_val']
 
         self.load_state_dict(src_dict)

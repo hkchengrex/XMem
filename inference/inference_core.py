@@ -16,6 +16,14 @@ class InferenceCore:
         # if deep_update_every < 0, synchronize deep update with memory frame
         self.deep_update_sync = (self.deep_update_every < 0)
 
+        # set up dustbin related parameters
+        # only used for the GUI
+        self.dustbin_enabled = network.dustbin_enabled
+        if self.dustbin_enabled:
+            self.dustbin_val = network.dustbin_val
+            self.dustbin_tol = network.dustbin_tol
+            self.dustbin_tol_multiplier = 1
+
         self.clear_memory()
         self.all_labels = None
 
@@ -25,6 +33,15 @@ class InferenceCore:
         if not self.deep_update_sync:
             self.last_deep_update_ti = -self.deep_update_every
         self.memory = MemoryManager(config=self.config)
+        if self.dustbin_enabled:
+            self.memory.dustbin_val = self.dustbin_val
+            self.memory.dustbin_tol = self.dustbin_tol * self.dustbin_tol_multiplier
+            print(self.memory.dustbin_tol)
+
+    def set_dustbin_tol_multiplier(self, multiplier):
+        self.dustbin_tol_multiplier = multiplier
+        self.memory.dustbin_tol = self.dustbin_tol * self.dustbin_tol_multiplier
+        print(self.memory.dustbin_tol)
 
     def update_config(self, config):
         self.mem_every = config['mem_every']

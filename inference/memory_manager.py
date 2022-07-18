@@ -34,6 +34,8 @@ class MemoryManager:
             self.long_mem = KeyValueMemoryStore(count_usage=self.enable_long_term_usage)
 
         self.reset_config = True
+        self.dustbin_tol = None
+        self.dustbin_val = None
 
     def update_config(self, config):
         self.reset_config = True
@@ -50,8 +52,12 @@ class MemoryManager:
             self.num_prototypes = config['num_prototypes']
             self.max_long_elements = config['max_long_term_elements']
 
-    def _readout(self, affinity, v):
+    def _readout(self, affinity, v, use_dustbin_if_avail=True):
         # this function is for a single object group
+        if use_dustbin_if_avail and self.dustbin_val is not None:
+            dustbin_val = self.dustbin_val.view(1, v.shape[1], 1)
+            dustbin_val = dustbin_val.expand(v.shape[0], -1, -1)
+            v = torch.cat([v, dustbin_val], dim=-1)
         return v @ affinity
 
     def match_memory(self, query_key, selection):
@@ -73,7 +79,7 @@ class MemoryManager:
             memory_key = torch.cat([self.long_mem.key, self.work_mem.key], -1)
             shrinkage = torch.cat([self.long_mem.shrinkage, self.work_mem.shrinkage], -1) 
 
-            similarity = get_similarity(memory_key, shrinkage, query_key, selection)
+            similarity = get_similarity(memory_key, shrinkage, query_key, selection, self.dustbin_tol)
             work_mem_similarity = similarity[:, long_mem_size:]
             long_mem_similarity = similarity[:, :long_mem_size]
 
@@ -110,7 +116,10 @@ class MemoryManager:
             Record memory usage for working and long-term memory
             """
             # ignore the index return for long-term memory
-            work_usage = usage[:, long_mem_size:]
+            if self.dustbin_val is not None:
+                work_usage = usage[:, long_mem_size:-1] # ignore dustbin
+            else:
+                work_usage = usage[:, long_mem_size:]
             self.work_mem.update_usage(work_usage.flatten())
 
             if self.enable_long_term_usage:
@@ -119,14 +128,17 @@ class MemoryManager:
                 self.long_mem.update_usage(long_usage.flatten())
         else:
             # No long-term memory
-            similarity = get_similarity(self.work_mem.key, self.work_mem.shrinkage, query_key, selection)
+            similarity = get_similarity(self.work_mem.key, self.work_mem.shrinkage, query_key, selection, self.dustbin_tol)
 
             if self.enable_long_term:
                 affinity, usage = do_softmax(similarity, inplace=(num_groups==1), 
                     top_k=self.top_k, return_usage=True)
 
                 # Record memory usage for working memory
-                self.work_mem.update_usage(usage.flatten())
+                if self.dustbin_val is not None:
+                    self.work_mem.update_usage(usage.flatten()[:-1]) # ignore dustbin
+                else:
+                    self.work_mem.update_usage(usage.flatten())
             else:
                 affinity = do_softmax(similarity, inplace=(num_groups==1), 
                     top_k=self.top_k, return_usage=False)
@@ -274,11 +286,12 @@ class MemoryManager:
 
         # readout the values
         prototype_value = [
-            self._readout(affinity[gi], gv) if affinity[gi] is not None else None
+            self._readout(affinity[gi], gv, use_dustbin_if_avail=False) if affinity[gi] is not None else None
             for gi, gv in enumerate(candidate_value)
         ]
 
         # readout the shrinkage term
-        prototype_shrinkage = self._readout(affinity[0], candidate_shrinkage) if candidate_shrinkage is not None else None
+        prototype_shrinkage = self._readout(affinity[0], candidate_shrinkage, 
+                    use_dustbin_if_avail=False) if candidate_shrinkage is not None else None
 
         return prototype_key, prototype_value, prototype_shrinkage

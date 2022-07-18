@@ -180,12 +180,18 @@ class App(QWidget):
                                                         'Number of prototypes', step=32, callback=self.update_config)
         self.mem_every_box, self.mem_every_box_layout = create_parameter_box(1, 100, 'Memory frame every (r)', 
                                                         callback=self.update_config)
+        self.recall_knob, self.recall_knob_layout = create_parameter_box(-100, 100, 'Recall adjustment', 
+                                                        callback=self.update_recall)
 
         self.work_mem_min.setValue(self.processor.memory.min_mt_frames)
         self.work_mem_max.setValue(self.processor.memory.max_mt_frames)
         self.long_mem_max.setValue(self.processor.memory.max_long_elements)
         self.num_prototypes_box.setValue(self.processor.memory.num_prototypes)
         self.mem_every_box.setValue(self.processor.mem_every)
+        self.recall_knob.setValue(10)
+        if not self.processor.dustbin_enabled:
+            # dis-allow adjustment of recall if the model does not support dustbin
+            self.recall_knob.setEnabled(False)
 
         # Console on the GUI
         self.console = QPlainTextEdit()
@@ -252,6 +258,7 @@ class App(QWidget):
         minimap_area.addLayout(self.long_mem_max_layout)
         minimap_area.addLayout(self.num_prototypes_box_layout)
         minimap_area.addLayout(self.mem_every_box_layout)
+        minimap_area.addLayout(self.recall_knob_layout)
 
         # console
         minimap_area.addWidget(self.console)
@@ -827,6 +834,10 @@ class App(QWidget):
             self.config['mem_every'] = self.mem_every_box.value()
 
             self.processor.update_config(self.config)
+
+    def update_recall(self):
+        if self.initialized:
+            self.processor.set_dustbin_tol_multiplier(self.recall_knob.value()/10)
 
     def on_clear_memory(self):
         self.processor.clear_memory()
