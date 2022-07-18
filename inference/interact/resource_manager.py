@@ -1,8 +1,7 @@
 import os
 from os import path
-
-from functools import lru_cache
 import shutil
+import collections
 
 import cv2
 from PIL import Image
@@ -10,6 +9,29 @@ import numpy as np
 
 from util.palette import davis_palette
 import progressbar
+ 
+
+# https://bugs.python.org/issue28178
+# ah python ah why
+class LRU:
+    def __init__(self, func, maxsize=128):
+        self.cache = collections.OrderedDict()
+        self.func = func
+        self.maxsize = maxsize
+ 
+    def __call__(self, *args):
+        cache = self.cache
+        if args in cache:
+            cache.move_to_end(args)
+            return cache[args]
+        result = self.func(*args)
+        cache[args] = result
+        if len(cache) > self.maxsize:
+            cache.popitem(last=False)
+        return result
+
+    def invalidate(self, key):
+        self.cache.pop(key, None)
 
 
 class ResourceManager:
@@ -53,10 +75,8 @@ class ResourceManager:
         os.makedirs(self.mask_dir, exist_ok=True)
 
         # convert read functions to be buffered
-        self.get_image = lru_cache(maxsize=config['buffer_size'])(self._get_image_unbuffered)
-        # The check itself should not be buffered
-        self._get_mask_buffered_without_check = lru_cache(maxsize=config['buffer_size'])(
-                                    self._get_mask_unbuffered_without_check)
+        self.get_image = LRU(self._get_image_unbuffered, maxsize=config['buffer_size'])
+        self.get_mask = LRU(self._get_mask_unbuffered, maxsize=config['buffer_size'])
 
         # extract frames from video
         if need_decoding:
@@ -123,6 +143,7 @@ class ResourceManager:
         mask = Image.fromarray(mask)
         mask.putpalette(self.palette)
         mask.save(path.join(self.mask_dir, self.names[ti]+'.png'))
+        self.invalidate(ti)
 
     def _get_image_unbuffered(self, ti):
         # returns H*W*3 uint8 array
@@ -132,22 +153,22 @@ class ResourceManager:
         image = np.array(image)
         return image
 
-    def _get_mask_unbuffered_without_check(self, ti):
-        # returns H*W uint8 array
-        mask = Image.open(path.join(self.mask_dir, self.names[ti]+'.png'))
-        mask = np.array(mask)
-        return mask
-
-    def get_mask(self, ti):
+    def _get_mask_unbuffered(self, ti):
         # returns H*W uint8 array
         assert 0 <= ti < self.length
 
         mask_path = path.join(self.mask_dir, self.names[ti]+'.png')
         if path.exists(mask_path):
-            return self._get_mask_buffered_without_check(ti)
+            mask = Image.open(mask_path)
+            mask = np.array(mask)
+            return mask
         else:
-            # no mask there
             return None
+
+    def invalidate(self, ti):
+        # the image buffer is never invalidated
+        self.get_mask.invalidate((ti,))
+        print(self.get_mask.cache.keys())
 
     def __len__(self):
         return self.length
