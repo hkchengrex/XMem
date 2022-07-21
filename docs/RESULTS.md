@@ -3,8 +3,8 @@
 ## Preamble
 
 Our code, by default, uses automatic mixed precision (AMP). Its effect on the output is negligible.
-All speed reported in the paper are recorded with AMP turned off (`--benchmark`).
-There might be slight differences between the outputs produced by this code base with the precomputed results/results reported in the paper due to refactoring. This difference rarely leads to a change of the least significant figure (i.e., 0.1).
+All speeds reported in the paper are recorded with AMP turned off (`--benchmark`).
+Due to refactoring, there might be slight differences between the outputs produced by this code base with the precomputed results/results reported in the paper. This difference rarely leads to a change of the least significant figure (i.e., 0.1).
 
 **For most complete results, please see the paper (and the appendix)!**
 
