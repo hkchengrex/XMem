@@ -121,7 +121,7 @@ elif is_lv:
     else:
         raise NotImplementedError
 elif args.dataset == 'G':
-    meta_dataset = LongTestDataset(path.join(args.generic_path))
+    meta_dataset = LongTestDataset(path.join(args.generic_path), size=args.size)
     if not args.save_all:
         args.save_all = True
         print('save_all is forced to be true in generic evaluation mode.')
