@@ -27,6 +27,8 @@ def index_numpy_to_one_hot_torch(mask, num_classes):
 Some constants fro visualization
 """
 color_map_np = np.frombuffer(davis_palette, dtype=np.uint8).reshape(-1, 3).copy()
+# scales for better visualization
+color_map_np = (color_map_np.astype(np.float32)*1.5).clip(0, 255).astype(np.uint8)
 color_map = color_map_np.tolist()
 if torch.cuda.is_available():
     color_map_torch = torch.from_numpy(color_map_np).cuda() / 255
