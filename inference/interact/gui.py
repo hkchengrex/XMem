@@ -117,6 +117,8 @@ class App(QWidget):
         self.combo.addItem("davis")
         self.combo.addItem("fade")
         self.combo.addItem("light")
+        self.combo.addItem("popup")
+        self.combo.addItem("layered")
         self.combo.currentTextChanged.connect(self.set_viz_mode)
 
         # Radio buttons for type of interactions
@@ -312,6 +314,8 @@ class App(QWidget):
         QShortcut(QKeySequence(Qt.Key_Right), self).activated.connect(self.on_next_frame)
 
         self.interacted_prob = None
+        self.overlay_layer = None
+        self.overlay_layer_torch = None
 
         self.load_current_image_mask()
         self.show_current_frame()
@@ -367,14 +371,7 @@ class App(QWidget):
             self.current_prob = index_numpy_to_one_hot_torch(self.current_mask, self.num_objects+1).cuda()
 
     def compose_current_im(self):
-        if self.viz_mode == 'fade':
-            self.viz = overlay_davis_fade(self.current_image, self.current_mask) 
-        elif self.viz_mode == 'davis':
-            self.viz = overlay_davis(self.current_image, self.current_mask) 
-        elif self.viz_mode == 'light':
-            self.viz = overlay_davis(self.current_image, self.current_mask, 0.9)
-        else:
-            raise NotImplementedError
+        self.viz = get_visualization(self.viz_mode, self.current_image, self.current_mask, self.overlay_layer)
 
     def update_interact_vis(self):
         # Update the interactions without re-computing the overlay
@@ -413,14 +410,8 @@ class App(QWidget):
 
     def update_current_image_fast(self):
         # fast path, uses gpu. Changes the image in-place to avoid copying
-        if self.viz_mode == 'fade':
-            self.viz = overlay_davis_fade_torch(self.current_image_torch_no_norm, self.current_prob) 
-        elif self.viz_mode == 'davis':
-            self.viz = overlay_davis_torch(self.current_image_torch_no_norm, self.current_prob) 
-        elif self.viz_mode == 'light':
-            self.viz = overlay_davis_torch(self.current_image_torch_no_norm, self.current_prob, 0.9)
-        else:
-            raise NotImplementedError
+        self.viz = get_visualization_torch(self.viz_mode, self.current_image_torch_no_norm, 
+                    self.current_prob, self.overlay_layer_torch)
 
         height, width, channel = self.viz.shape
         bytesPerLine = 3 * width

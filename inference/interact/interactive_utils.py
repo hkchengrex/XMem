@@ -2,10 +2,9 @@
 
 import numpy as np
 
-from scipy.ndimage.morphology import binary_dilation
-
 import torch
 import torch.nn.functional as F
+from util.palette import davis_palette
 from dataset.range_transform import im_normalization
 
 def image_to_torch(frame: np.ndarray, device='cuda'):
@@ -24,21 +23,47 @@ def index_numpy_to_one_hot_torch(mask, num_classes):
     mask = torch.from_numpy(mask).long()
     return F.one_hot(mask, num_classes=num_classes).permute(2, 0, 1).float()
 
-color_map = [
-    [0, 0, 0], 
-    [255, 50, 50], 
-    [50, 255, 50], 
-    [50, 50, 255], 
-    [255, 50, 255], 
-    [50, 255, 255], 
-    [255, 255, 50], 
-]
-
-color_map_np = np.array(color_map)
+"""
+Some constants fro visualization
+"""
+color_map_np = np.frombuffer(davis_palette, dtype=np.uint8).reshape(-1, 3).copy()
+color_map = color_map_np.tolist()
 if torch.cuda.is_available():
     color_map_torch = torch.from_numpy(color_map_np).cuda() / 255
 
-def overlay_davis(image, mask, alpha=0.5):
+grayscale_weights = np.array([[0.3,0.59,0.11]]).astype(np.float32)
+if torch.cuda.is_available():
+    grayscale_weights_torch = torch.from_numpy(grayscale_weights).cuda()
+
+def get_visualization(mode, image, mask, layer):
+    if mode == 'fade':
+        return overlay_davis(image, mask, fade=True)
+    elif mode == 'davis':
+        return overlay_davis(image, mask)
+    elif mode == 'light':
+        return overlay_davis(image, mask, 0.9)
+    elif mode == 'popup':
+        return overlay_popup(image, mask)
+    elif mode == 'layered':
+        return overlay_layer(image, mask, layer)
+    else:
+        raise NotImplementedError
+
+def get_visualization_torch(mode, image, prob, layer):
+    if mode == 'fade':
+        return overlay_davis_torch(image, prob, fade=True)
+    elif mode == 'davis':
+        return overlay_davis_torch(image, prob)
+    elif mode == 'light':
+        return overlay_davis_torch(image, prob, 0.9)
+    elif mode == 'popup':
+        return overlay_popup_torch(image, prob)
+    elif mode == 'layered':
+        return overlay_layer_torch(image, prob, layer)
+    else:
+        raise NotImplementedError
+
+def overlay_davis(image, mask, alpha=0.5, fade=False):
     """ Overlay segmentation on top of RGB image. from davis official"""
     im_overlay = image.copy()
 
@@ -47,24 +72,20 @@ def overlay_davis(image, mask, alpha=0.5):
     binary_mask = (mask > 0)
     # Compose image
     im_overlay[binary_mask] = foreground[binary_mask]
-    # countours = binary_dilation(binary_mask) ^ binary_mask
-    # im_overlay[countours,:] = 0
+    if fade:
+        im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
     return im_overlay.astype(image.dtype)
 
-def overlay_davis_fade(image, mask, alpha=0.5):
+def overlay_popup(image, mask):
+    # Keep foreground colored. Convert background to grayscale.
     im_overlay = image.copy()
 
-    colored_mask = color_map_np[mask]
-    foreground = image*alpha + (1-alpha)*colored_mask
-    binary_mask = (mask > 0)
-    # Compose image
-    im_overlay[binary_mask] = foreground[binary_mask]
-    # countours = binary_dilation(binary_mask) ^ binary_mask
-    # im_overlay[countours,:] = 0
-    im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
+    binary_mask = ~(mask > 0)
+    colored_region = (im_overlay[binary_mask]*grayscale_weights).sum(-1, keepdims=-1)
+    im_overlay[binary_mask] = colored_region
     return im_overlay.astype(image.dtype)
 
-def overlay_davis_torch(image, mask, alpha=0.5):
+def overlay_davis_torch(image, mask, alpha=0.5, fade=False):
     """ Overlay segmentation on top of RGB image. from davis official"""
     # Changes the image in-place to avoid copying
     image = image.permute(1, 2, 0)
@@ -76,28 +97,23 @@ def overlay_davis_torch(image, mask, alpha=0.5):
     binary_mask = (mask > 0)
     # Compose image
     im_overlay[binary_mask] = foreground[binary_mask]
-    # countours = binary_dilation(binary_mask) ^ binary_mask
-    # im_overlay[countours,:] = 0
+    if fade:
+        im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
 
     im_overlay = (im_overlay*255).cpu().numpy()
     im_overlay = im_overlay.astype(np.uint8)
 
     return im_overlay
 
-def overlay_davis_fade_torch(image, mask, alpha=0.5):
-    # Changes the image in-place to avoid copying
+def overlay_popup_torch(image, mask):
+    # Keep foreground colored. Convert background to grayscale.
     image = image.permute(1, 2, 0)
     im_overlay = image
     mask = torch.argmax(mask, dim=0)
 
-    colored_mask = color_map_torch[mask]
-    foreground = image*alpha + (1-alpha)*colored_mask
-    binary_mask = (mask > 0)
-    # Compose image
-    im_overlay[binary_mask] = foreground[binary_mask]
-    # countours = binary_dilation(binary_mask) ^ binary_mask
-    # im_overlay[countours,:] = 0
-    im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
+    binary_mask = ~(mask > 0)
+    colored_region = (im_overlay[binary_mask]*grayscale_weights_torch).sum(-1, keepdim=True)
+    im_overlay[binary_mask] = colored_region
 
     im_overlay = (im_overlay*255).cpu().numpy()
     im_overlay = im_overlay.astype(np.uint8)
