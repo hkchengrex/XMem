@@ -23,7 +23,7 @@ import numpy as np
 import torch
 
 from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox, 
-    QHBoxLayout, QLabel, QPushButton, QTextEdit, QSpinBox,
+    QHBoxLayout, QLabel, QPushButton, QTextEdit, QSpinBox, QFileDialog,
     QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, QShortcut, QRadioButton)
 
 from PyQt5.QtGui import QPixmap, QKeySequence, QImage, QTextCursor, QIcon
@@ -189,6 +189,12 @@ class App(QWidget):
         self.num_prototypes_box.setValue(self.processor.memory.num_prototypes)
         self.mem_every_box.setValue(self.processor.mem_every)
 
+        # import mask/layer
+        self.import_mask_button = QPushButton('Import mask')
+        self.import_mask_button.clicked.connect(self.on_import_mask)
+        self.import_layer_button = QPushButton('Import layer')
+        self.import_layer_button.clicked.connect(self.on_import_layer)
+
         # Console on the GUI
         self.console = QPlainTextEdit()
         self.console.setReadOnly(True)
@@ -254,6 +260,13 @@ class App(QWidget):
         minimap_area.addLayout(self.long_mem_max_layout)
         minimap_area.addLayout(self.num_prototypes_box_layout)
         minimap_area.addLayout(self.mem_every_box_layout)
+
+        # import mask/layer
+        import_area = QHBoxLayout()
+        import_area.setAlignment(Qt.AlignTop)
+        import_area.addWidget(self.import_mask_button)
+        import_area.addWidget(self.import_layer_button)
+        minimap_area.addLayout(import_area)
 
         # console
         minimap_area.addWidget(self.console)
@@ -323,6 +336,9 @@ class App(QWidget):
 
         self.console_push_text('Initialized.')
         self.initialized = True
+
+        # try to load the default overlay
+        self._try_load_layer('./docs/ECCV-logo.png')
  
     def resizeEvent(self, event):
         self.show_current_frame()
@@ -546,6 +562,7 @@ class App(QWidget):
     def on_propagation(self):
         # start to propagate
         self.load_current_torch_image_mask()
+        self.show_current_frame(fast=True)
 
         self.console_push_text('Propagation started.')
         self.current_prob = self.processor.step(self.current_image_torch, self.current_prob[1:])
@@ -824,3 +841,57 @@ class App(QWidget):
         torch.cuda.empty_cache()
         self.update_gpu_usage()
         self.update_memory_size()
+
+    def _open_file(self, prompt):
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, prompt, "", "PNG files (*.png)", options=options)
+        return file_name
+
+    def on_import_mask(self):
+        file_name = self._open_file('Mask')
+        if len(file_name) == 0:
+            return
+
+        mask = self.res_man.read_external_image(file_name)
+
+        condition = (
+            (len(mask.shape) == 2) and
+            (mask.shape[-1] == self.width) and 
+            (mask.shape[-2] == self.height)
+        )
+
+        if not condition:
+            self.console_push_text(f'Expected ({self.height}, {self.width}). Got {mask.shape}.')
+        else:
+            self.console_push_text(f'Mask file {file_name} loaded.')
+            self.current_image_torch = self.current_prob = None
+            self.current_mask = mask
+            self.show_current_frame()
+
+    def on_import_layer(self):
+        file_name = self._open_file('Layer')
+        if len(file_name) == 0:
+            return
+
+        self._try_load_layer(file_name)
+
+    def _try_load_layer(self, file_name):
+        try:
+            layer = self.res_man.read_external_image(file_name, size=(self.height, self.width))
+
+            condition = (
+                (len(layer.shape) == 3) and
+                (layer.shape[-1] == 4) and 
+                (layer.shape[-2] == self.width) and 
+                (layer.shape[-3] == self.height)
+            )
+
+            if not condition:
+                self.console_push_text(f'Expected ({self.height}, {self.width}, 4). Got {layer.shape}.')
+            else:
+                self.console_push_text(f'Layer file {file_name} loaded.')
+                self.overlay_layer = layer
+                self.overlay_layer_torch = torch.from_numpy(layer).float().cuda()/255
+                self.show_current_frame()
+        except FileNotFoundError:
+            self.console_push_text(f'{file_name} not found.')

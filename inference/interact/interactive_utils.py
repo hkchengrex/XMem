@@ -85,6 +85,18 @@ def overlay_popup(image, mask):
     im_overlay[binary_mask] = colored_region
     return im_overlay.astype(image.dtype)
 
+def overlay_layer(image, mask, layer):
+    # insert a layer between foreground and background
+    # The CPU version is less accurate because we are using the hard mask
+    # The GPU version has softer edges as it uses soft probabilities
+    obj_mask = (mask > 0).astype(np.float32)
+    layer_alpha = layer[:, :, 3].astype(np.float32) / 255
+    layer_rgb = layer[:, :, :3]
+    background_alpha = np.maximum(obj_mask, layer_alpha)[:,:,np.newaxis]
+    obj_mask = obj_mask[:,:,np.newaxis]
+    im_overlay = (image*(1-background_alpha) + layer_rgb*(1-obj_mask) + image*obj_mask).clip(0, 255)
+    return im_overlay.astype(image.dtype)
+
 def overlay_davis_torch(image, mask, alpha=0.5, fade=False):
     """ Overlay segmentation on top of RGB image. from davis official"""
     # Changes the image in-place to avoid copying
@@ -114,6 +126,25 @@ def overlay_popup_torch(image, mask):
     binary_mask = ~(mask > 0)
     colored_region = (im_overlay[binary_mask]*grayscale_weights_torch).sum(-1, keepdim=True)
     im_overlay[binary_mask] = colored_region
+
+    im_overlay = (im_overlay*255).cpu().numpy()
+    im_overlay = im_overlay.astype(np.uint8)
+
+    return im_overlay
+
+def overlay_layer_torch(image, mask, layer):
+    # insert a layer between foreground and background
+    # The CPU version is less accurate because we are using the hard mask
+    # The GPU version has softer edges as it uses soft probabilities
+    image = image.permute(1, 2, 0)
+
+    obj_mask = mask[1:].max(dim=0)[0]
+    mask = torch.argmax(mask, dim=0)
+    layer_alpha = layer[:, :, 3]
+    layer_rgb = layer[:, :, :3]
+    background_alpha = torch.maximum(obj_mask, layer_alpha).unsqueeze(2)
+    obj_mask = obj_mask.unsqueeze(2)
+    im_overlay = (image*(1-background_alpha) + layer_rgb*(1-obj_mask) + image*obj_mask).clip(0, 1)
 
     im_overlay = (im_overlay*255).cpu().numpy()
     im_overlay = im_overlay.astype(np.uint8)

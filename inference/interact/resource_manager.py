@@ -165,6 +165,14 @@ class ResourceManager:
         else:
             return None
 
+    def read_external_image(self, file_name, size=None):
+        image = Image.open(file_name)
+        if size is not None:
+            # PIL uses (width, height)
+            image = image.resize((size[1], size[0]))
+        image = np.array(image)
+        return image
+
     def invalidate(self, ti):
         # the image buffer is never invalidated
         self.get_mask.invalidate((ti,))
