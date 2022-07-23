@@ -168,7 +168,6 @@ class ResourceManager:
     def invalidate(self, ti):
         # the image buffer is never invalidated
         self.get_mask.invalidate((ti,))
-        print(self.get_mask.cache.keys())
 
     def __len__(self):
         return self.length
