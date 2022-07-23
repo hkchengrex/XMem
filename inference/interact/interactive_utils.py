@@ -45,7 +45,11 @@ def get_visualization(mode, image, mask, layer):
     elif mode == 'popup':
         return overlay_popup(image, mask)
     elif mode == 'layered':
-        return overlay_layer(image, mask, layer)
+        if layer is None:
+            print('Layer file not given. Defaulting to DAVIS.')
+            return overlay_davis(image, mask)
+        else:
+            return overlay_layer(image, mask, layer)
     else:
         raise NotImplementedError
 
@@ -59,7 +63,11 @@ def get_visualization_torch(mode, image, prob, layer):
     elif mode == 'popup':
         return overlay_popup_torch(image, prob)
     elif mode == 'layered':
-        return overlay_layer_torch(image, prob, layer)
+        if layer is None:
+            print('Layer file not given. Defaulting to DAVIS.')
+            return overlay_davis_torch(image, prob)
+        else:
+            return overlay_layer_torch(image, prob, layer)
     else:
         raise NotImplementedError
 
