@@ -22,7 +22,7 @@ os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 import numpy as np
 import torch
 
-from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox, 
+from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox, QCheckBox,
     QHBoxLayout, QLabel, QPushButton, QTextEdit, QSpinBox, QFileDialog,
     QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, QShortcut, QRadioButton)
 
@@ -120,6 +120,11 @@ class App(QWidget):
         self.combo.addItem("popup")
         self.combo.addItem("layered")
         self.combo.currentTextChanged.connect(self.set_viz_mode)
+
+        self.save_visualization_checkbox = QCheckBox(self)
+        self.save_visualization_checkbox.toggled.connect(self.on_save_visualization_toggle)
+        self.save_visualization_checkbox.setChecked(False)
+        self.save_visualization = False
 
         # Radio buttons for type of interactions
         self.curr_interaction = 'Click'
@@ -225,6 +230,8 @@ class App(QWidget):
         navi.addStretch(1)
         navi.addWidget(QLabel('Overlay Mode'))
         navi.addWidget(self.combo)
+        navi.addWidget(QLabel('Save overlay during propagation'))
+        navi.addWidget(self.save_visualization_checkbox)
         navi.addStretch(1)
         navi.addWidget(self.commit_button)
         navi.addWidget(self.forward_run_button)
@@ -428,6 +435,8 @@ class App(QWidget):
         # fast path, uses gpu. Changes the image in-place to avoid copying
         self.viz = get_visualization_torch(self.viz_mode, self.current_image_torch_no_norm, 
                     self.current_prob, self.overlay_layer_torch)
+        if self.save_visualization:
+            self.res_man.save_visualization(self.cursur, self.viz)
 
         height, width, channel = self.viz.shape
         bytesPerLine = 3 * width
@@ -895,3 +904,6 @@ class App(QWidget):
                 self.show_current_frame()
         except FileNotFoundError:
             self.console_push_text(f'{file_name} not found.')
+
+    def on_save_visualization_toggle(self):
+        self.save_visualization = self.save_visualization_checkbox.isChecked()

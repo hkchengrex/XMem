@@ -33,7 +33,7 @@ if torch.cuda.is_available():
 
 grayscale_weights = np.array([[0.3,0.59,0.11]]).astype(np.float32)
 if torch.cuda.is_available():
-    grayscale_weights_torch = torch.from_numpy(grayscale_weights).cuda()
+    grayscale_weights_torch = torch.from_numpy(grayscale_weights).cuda().unsqueeze(0)
 
 def get_visualization(mode, image, mask, layer):
     if mode == 'fade':
@@ -128,12 +128,10 @@ def overlay_davis_torch(image, mask, alpha=0.5, fade=False):
 def overlay_popup_torch(image, mask):
     # Keep foreground colored. Convert background to grayscale.
     image = image.permute(1, 2, 0)
-    im_overlay = image
-    mask = torch.argmax(mask, dim=0)
-
-    binary_mask = ~(mask > 0)
-    colored_region = (im_overlay[binary_mask]*grayscale_weights_torch).sum(-1, keepdim=True)
-    im_overlay[binary_mask] = colored_region
+    
+    obj_mask = mask[1:].max(dim=0)[0].unsqueeze(2)
+    gray_image = (image*grayscale_weights_torch).sum(-1, keepdim=True)
+    im_overlay = obj_mask*image + (1-obj_mask)*gray_image
 
     im_overlay = (im_overlay*255).cpu().numpy()
     im_overlay = im_overlay.astype(np.uint8)

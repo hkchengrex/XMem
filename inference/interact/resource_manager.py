@@ -96,6 +96,7 @@ class ResourceManager:
         print(f'{self.length} images found.')
 
         self.height, self.width = self.get_image(0).shape[:2]
+        self.visualization_init = False
 
     def _extract_frames(self, video):
         cap = cv2.VideoCapture(video)
@@ -144,6 +145,18 @@ class ResourceManager:
         mask.putpalette(self.palette)
         mask.save(path.join(self.mask_dir, self.names[ti]+'.png'))
         self.invalidate(ti)
+
+    def save_visualization(self, ti, image):
+        # image should be uint8 3*H*W
+        assert 0 <= ti < self.length
+        assert isinstance(image, np.ndarray)
+        if not self.visualization_init:
+            self.visualization_dir = path.join(self.workspace, 'visualization')
+            os.makedirs(self.visualization_dir, exist_ok=True)
+            self.visualization_init = True
+
+        image = Image.fromarray(image)
+        image.save(path.join(self.visualization_dir, self.names[ti]+'.jpg'))
 
     def _get_image_unbuffered(self, ti):
         # returns H*W*3 uint8 array
