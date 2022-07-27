@@ -861,21 +861,28 @@ class App(QWidget):
         if len(file_name) == 0:
             return
 
-        mask = self.res_man.read_external_image(file_name)
+        mask = self.res_man.read_external_image(file_name, size=(self.height, self.width))
 
-        condition = (
+        shape_condition = (
             (len(mask.shape) == 2) and
             (mask.shape[-1] == self.width) and 
             (mask.shape[-2] == self.height)
         )
 
-        if not condition:
-            self.console_push_text(f'Expected ({self.height}, {self.width}). Got {mask.shape}.')
+        object_condition = (
+            mask.max() <= self.num_objects
+        )
+
+        if not shape_condition:
+            self.console_push_text(f'Expected ({self.height}, {self.width}). Got {mask.shape} instead.')
+        elif not object_condition:
+            self.console_push_text(f'Expected {self.num_objects} objects. Got {mask.max()} objects instead.')
         else:
             self.console_push_text(f'Mask file {file_name} loaded.')
             self.current_image_torch = self.current_prob = None
             self.current_mask = mask
             self.show_current_frame()
+            self.save_current_mask()
 
     def on_import_layer(self):
         file_name = self._open_file('Layer')
