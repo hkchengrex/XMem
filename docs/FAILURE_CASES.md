@@ -10,7 +10,7 @@ https://user-images.githubusercontent.com/7107196/179459162-80b65a6c-439d-4239-8
 
 And the source video:
 
-https://user-images.githubusercontent.com/7107196/179459166-a48884d3-58e6-4d09-9118-7df51c5305bf.mp4
+https://user-images.githubusercontent.com/7107196/181700094-356284bc-e8a4-4757-ab84-1e9009fddd4b.mp4
 
 Technically it can be solved by using more positional and motion clues. XMem is not sufficiently proficient at those.
 
