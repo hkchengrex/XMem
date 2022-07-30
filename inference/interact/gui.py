@@ -338,7 +338,7 @@ class App(QWidget):
         self.overlay_layer_torch = None
 
         # the object id used for popup/layered overlay
-        self.vis_target_objects = []
+        self.vis_target_objects = [1]
         # try to load the default overlay
         self._try_load_layer('./docs/ECCV-logo.png')
  
@@ -867,7 +867,7 @@ class App(QWidget):
 
     def _open_file(self, prompt):
         options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, prompt, "", "PNG files (*.png)", options=options)
+        file_name, _ = QFileDialog.getOpenFileName(self, prompt, "", "Image files (*)", options=options)
         return file_name
 
     def on_import_mask(self):
@@ -892,7 +892,7 @@ class App(QWidget):
         elif not object_condition:
             self.console_push_text(f'Expected {self.num_objects} objects. Got {mask.max()} objects instead.')
         else:
-            self.console_push_text(f'Mask file {file_name} loaded.')
+            self.console_push_text(f'Mask file loaded.')
             self.current_image_torch = self.current_prob = None
             self.current_mask = mask
             self.show_current_frame()
@@ -909,6 +909,9 @@ class App(QWidget):
         try:
             layer = self.res_man.read_external_image(file_name, size=(self.height, self.width))
 
+            if layer.shape[-1] == 3:
+                layer = np.concatenate([layer, np.ones_like(layer[:,:,0:1])*255], axis=-1)
+
             condition = (
                 (len(layer.shape) == 3) and
                 (layer.shape[-1] == 4) and 
@@ -919,7 +922,7 @@ class App(QWidget):
             if not condition:
                 self.console_push_text(f'Expected ({self.height}, {self.width}, 4). Got {layer.shape}.')
             else:
-                self.console_push_text(f'Layer file {file_name} loaded.')
+                self.console_push_text(f'Layer file loaded.')
                 self.overlay_layer = layer
                 self.overlay_layer_torch = torch.from_numpy(layer).float().cuda()/255
                 self.show_current_frame()

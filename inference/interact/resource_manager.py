@@ -182,11 +182,11 @@ class ResourceManager:
 
     def read_external_image(self, file_name, size=None):
         image = Image.open(file_name)
-        is_png = file_name.endswith('.png')
+        is_mask = image.mode in ['L', 'P']
         if size is not None:
             # PIL uses (width, height)
             image = image.resize((size[1], size[0]), 
-                    resample=Image.Resampling.NEAREST if is_png else None)
+                    resample=Image.Resampling.NEAREST if is_mask else Image.Resampling.BICUBIC)
         image = np.array(image)
         return image
 
