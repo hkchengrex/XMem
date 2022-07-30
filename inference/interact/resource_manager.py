@@ -5,6 +5,8 @@ import collections
 
 import cv2
 from PIL import Image
+if not hasattr(Image, 'Resampling'):  # Pillow<9.0
+    Image.Resampling = Image
 import numpy as np
 
 from util.palette import davis_palette
