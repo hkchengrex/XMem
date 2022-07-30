@@ -338,7 +338,7 @@ class App(QWidget):
         self.overlay_layer_torch = None
 
         # the object id used for popup/layered overlay
-        self.vis_target_object = 1
+        self.vis_target_objects = []
         # try to load the default overlay
         self._try_load_layer('./docs/ECCV-logo.png')
  
@@ -396,7 +396,7 @@ class App(QWidget):
 
     def compose_current_im(self):
         self.viz = get_visualization(self.viz_mode, self.current_image, self.current_mask, 
-                            self.overlay_layer, self.vis_target_object)
+                            self.overlay_layer, self.vis_target_objects)
 
     def update_interact_vis(self):
         # Update the interactions without re-computing the overlay
@@ -436,7 +436,7 @@ class App(QWidget):
     def update_current_image_fast(self):
         # fast path, uses gpu. Changes the image in-place to avoid copying
         self.viz = get_visualization_torch(self.viz_mode, self.current_image_torch_no_norm, 
-                    self.current_prob, self.overlay_layer_torch, self.vis_target_object)
+                    self.current_prob, self.overlay_layer_torch, self.vis_target_objects)
         if self.save_visualization:
             self.res_man.save_visualization(self.cursur, self.viz)
 
@@ -696,8 +696,12 @@ class App(QWidget):
         # mid-click
         if (event.button() == Qt.MidButton):
             ex, ey = self.get_scaled_pos(event.x(), event.y())
-            self.vis_target_object = self.current_mask[int(ey),int(ex)]
-            self.console_push_text(f'Target object for visualization changed to {self.vis_target_object}')
+            target_object = self.current_mask[int(ey),int(ex)]
+            if target_object in self.vis_target_objects:
+                self.vis_target_objects.remove(target_object)
+            else:
+                self.vis_target_objects.append(target_object)
+            self.console_push_text(f'Target objects for visualization changed to {self.vis_target_objects}')
             self.show_current_frame()
             return
 
