@@ -892,7 +892,7 @@ class App(QWidget):
         elif not object_condition:
             self.console_push_text(f'Expected {self.num_objects} objects. Got {mask.max()} objects instead.')
         else:
-            self.console_push_text(f'Mask file loaded.')
+            self.console_push_text(f'Mask file {file_name} loaded.')
             self.current_image_torch = self.current_prob = None
             self.current_mask = mask
             self.show_current_frame()
@@ -922,7 +922,7 @@ class App(QWidget):
             if not condition:
                 self.console_push_text(f'Expected ({self.height}, {self.width}, 4). Got {layer.shape}.')
             else:
-                self.console_push_text(f'Layer file loaded.')
+                self.console_push_text(f'Layer file {file_name} loaded.')
                 self.overlay_layer = layer
                 self.overlay_layer_torch = torch.from_numpy(layer).float().cuda()/255
                 self.show_current_frame()
