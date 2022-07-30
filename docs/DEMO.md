@@ -45,6 +45,7 @@ python interactive_demo.py --video [path to the video] --num_objects 4
 * For "layered insertion" (e.g., the breakdance demo), use the "layered" overlay mode. You can load a custom layer using "Import layer". The layer should be an RGBA png file.
 * The "save overlay during propagation" checkbox does exactly that. It does not save the overlay when the user is just scrubbing the timeline.
 * For "popup" and "layered", the visualizations during propagation (and the saved overlays) have higher quality then when the user is scrubbing the timeline. This is because we have access to the soft probability mask during propagation.
+* Both "popup" and "layered" use a binary mask. By default, the first object mask is used. You can change the target object using the middle mouse key.
 
 ## FAQ
 

@@ -337,6 +337,11 @@ class App(QWidget):
         self.overlay_layer = None
         self.overlay_layer_torch = None
 
+        # the object id used for popup/layered overlay
+        self.vis_target_object = 1
+        # try to load the default overlay
+        self._try_load_layer('./docs/ECCV-logo.png')
+ 
         self.load_current_image_mask()
         self.show_current_frame()
         self.show()
@@ -344,16 +349,12 @@ class App(QWidget):
         self.console_push_text('Initialized.')
         self.initialized = True
 
-        # try to load the default overlay
-        self._try_load_layer('./docs/ECCV-logo.png')
- 
     def resizeEvent(self, event):
         self.show_current_frame()
 
     def console_push_text(self, text):
-        self.console.appendPlainText(text)
         self.console.moveCursor(QTextCursor.End)
-        print(text)
+        self.console.insertPlainText(text+'\n')
 
     def interaction_radio_clicked(self, event):
         self.last_interaction = self.curr_interaction
@@ -394,7 +395,8 @@ class App(QWidget):
             self.current_prob = index_numpy_to_one_hot_torch(self.current_mask, self.num_objects+1).cuda()
 
     def compose_current_im(self):
-        self.viz = get_visualization(self.viz_mode, self.current_image, self.current_mask, self.overlay_layer)
+        self.viz = get_visualization(self.viz_mode, self.current_image, self.current_mask, 
+                            self.overlay_layer, self.vis_target_object)
 
     def update_interact_vis(self):
         # Update the interactions without re-computing the overlay
@@ -434,7 +436,7 @@ class App(QWidget):
     def update_current_image_fast(self):
         # fast path, uses gpu. Changes the image in-place to avoid copying
         self.viz = get_visualization_torch(self.viz_mode, self.current_image_torch_no_norm, 
-                    self.current_prob, self.overlay_layer_torch)
+                    self.current_prob, self.overlay_layer_torch, self.vis_target_object)
         if self.save_visualization:
             self.res_man.save_visualization(self.cursur, self.viz)
 
@@ -691,8 +693,16 @@ class App(QWidget):
         if self.is_pos_out_of_bound(event.x(), event.y()):
             return
 
+        # mid-click
+        if (event.button() == Qt.MidButton):
+            ex, ey = self.get_scaled_pos(event.x(), event.y())
+            self.vis_target_object = self.current_mask[int(ey),int(ex)]
+            self.console_push_text(f'Target object for visualization changed to {self.vis_target_object}')
+            self.show_current_frame()
+            return
+
+        self.right_click = (event.button() == Qt.RightButton)
         self.pressed = True
-        self.right_click = (event.button() != 1)
 
         h, w = self.height, self.width
 

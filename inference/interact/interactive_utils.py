@@ -37,7 +37,7 @@ grayscale_weights = np.array([[0.3,0.59,0.11]]).astype(np.float32)
 if torch.cuda.is_available():
     grayscale_weights_torch = torch.from_numpy(grayscale_weights).cuda().unsqueeze(0)
 
-def get_visualization(mode, image, mask, layer):
+def get_visualization(mode, image, mask, layer, target_object):
     if mode == 'fade':
         return overlay_davis(image, mask, fade=True)
     elif mode == 'davis':
@@ -45,13 +45,13 @@ def get_visualization(mode, image, mask, layer):
     elif mode == 'light':
         return overlay_davis(image, mask, 0.9)
     elif mode == 'popup':
-        return overlay_popup(image, mask)
+        return overlay_popup(image, mask, target_object)
     elif mode == 'layered':
         if layer is None:
             print('Layer file not given. Defaulting to DAVIS.')
             return overlay_davis(image, mask)
         else:
-            return overlay_layer(image, mask, layer)
+            return overlay_layer(image, mask, layer, target_object)
     else:
         raise NotImplementedError
 
@@ -86,20 +86,20 @@ def overlay_davis(image, mask, alpha=0.5, fade=False):
         im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
     return im_overlay.astype(image.dtype)
 
-def overlay_popup(image, mask):
+def overlay_popup(image, mask, target_object):
     # Keep foreground colored. Convert background to grayscale.
     im_overlay = image.copy()
 
-    binary_mask = ~(mask > 0)
+    binary_mask = ~(mask == target_object)
     colored_region = (im_overlay[binary_mask]*grayscale_weights).sum(-1, keepdims=-1)
     im_overlay[binary_mask] = colored_region
     return im_overlay.astype(image.dtype)
 
-def overlay_layer(image, mask, layer):
+def overlay_layer(image, mask, layer, target_object):
     # insert a layer between foreground and background
     # The CPU version is less accurate because we are using the hard mask
     # The GPU version has softer edges as it uses soft probabilities
-    obj_mask = (mask > 0).astype(np.float32)
+    obj_mask = (mask == target_object).astype(np.float32)
     layer_alpha = layer[:, :, 3].astype(np.float32) / 255
     layer_rgb = layer[:, :, :3]
     background_alpha = np.maximum(obj_mask, layer_alpha)[:,:,np.newaxis]
@@ -127,11 +127,11 @@ def overlay_davis_torch(image, mask, alpha=0.5, fade=False):
 
     return im_overlay
 
-def overlay_popup_torch(image, mask):
+def overlay_popup_torch(image, mask, target_object):
     # Keep foreground colored. Convert background to grayscale.
     image = image.permute(1, 2, 0)
     
-    obj_mask = mask[1:].max(dim=0)[0].unsqueeze(2)
+    obj_mask = mask[target_object].unsqueeze(2)
     gray_image = (image*grayscale_weights_torch).sum(-1, keepdim=True)
     im_overlay = obj_mask*image + (1-obj_mask)*gray_image
 
@@ -140,13 +140,13 @@ def overlay_popup_torch(image, mask):
 
     return im_overlay
 
-def overlay_layer_torch(image, mask, layer):
+def overlay_layer_torch(image, mask, layer, target_object):
     # insert a layer between foreground and background
     # The CPU version is less accurate because we are using the hard mask
     # The GPU version has softer edges as it uses soft probabilities
     image = image.permute(1, 2, 0)
 
-    obj_mask = mask[1:].max(dim=0)[0]
+    obj_mask = mask[target_object]
     mask = torch.argmax(mask, dim=0)
     layer_alpha = layer[:, :, 3]
     layer_rgb = layer[:, :, :3]
