@@ -5,7 +5,7 @@ First, set up the required packages following [GETTING STARTED.md](./GETTING_STA
 You will need some additional packages and pretrained models for the GUI. For the packages,
 
 ```bash
-pip install requirements_demo.txt
+pip install -r requirements_demo.txt
 ```
 
 The interactive GUI is modified from [MiVOS](https://github.com/hkchengrex/MiVOS). Specifically, we keep the "interaction-to-mask" module and the propagation module is replaced with XMem. The fusion module is discarded because I don't want to train it.
