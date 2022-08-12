@@ -9,8 +9,8 @@ class KeyValueMemoryStore:
 
     """
     An object group is created when new objects enter the video
-    Objects in the same object object share the same temporal extent
-    i.e., objects initialize at the same frame will belong to the same group
+    Objects in the same group share the same temporal extent
+    i.e., objects initialized in the same frame are in the same group
     For DAVIS/interactive, there is only one object group
     For YouTubeVOS, there can be multiple object groups
     """
