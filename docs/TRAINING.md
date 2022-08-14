@@ -8,7 +8,7 @@ For example, the base model is pretrained with static images followed by the sho
 To train the base model on two GPUs, you can use:
 
 ```bash
-python -m torch.distributed.launch --master_port 25763 --nproc_per_node=2 train.py --exp_id retrain --stage 03
+python -m torch.distributed.run --master_port 25763 --nproc_per_node=2 train.py --exp_id retrain --stage 03
 ```
 
 `master_port` needs to point to an unused port. 
