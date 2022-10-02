@@ -16,6 +16,7 @@ python -m torch.distributed.run --master_port 25763 --nproc_per_node=2 train.py 
 `exp_id` is an identifier you give to this training job.
 
 See other available command line arguments in `util/configuration.py`.
+**Unlike the training code of STCN, batch sizes are effective. You don't have to adjust the batch size when you use more/fewer GPUs.**
 
 We implemented automatic staging in this code base. You don't have to train different stages by yourself like in STCN (but that is still supported).
 `stage` is a string that we split to determine the training stages. Examples include `0` (static images only), `03` (base training), `012` (with BL30K), `2` (main training only).
