@@ -1,5 +1,7 @@
 # Inference
 
+What is palette? Why is the output a "colored image"? How do I make those input masks that look like color images? See [PALETTE.md](./PALETTE.md).
+
 1. Set up the datasets following [GETTING_STARTED.md](./GETTING_STARTED.md).
 2. Download the pretrained models either using `./scripts/download_models.sh`, or manually and put them in `./saves` (create the folder if it doesn't exist). You can download them from [[GitHub]](https://github.com/hkchengrex/XMem/releases/tag/v1.0) or [[Google Drive]](https://drive.google.com/drive/folders/1QYsog7zNzcxGXTGBzEhMUg8QVJwZB6D1?usp=sharing).
 
