@@ -72,7 +72,7 @@ class BaseOptimizer:
         self._last_mask = current_mask
 
         loss.backward()
-        f_grad = opt_params.grad.cpu().numpy().ravel().astype(np.float)
+        f_grad = opt_params.grad.cpu().numpy().ravel().astype(np.float32)
 
         return [f_val, f_grad]
 
