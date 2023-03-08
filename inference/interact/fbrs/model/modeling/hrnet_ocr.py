@@ -205,7 +205,7 @@ class HighResolutionNet(nn.Module):
             num_branches=self.stage4_num_branches,
             num_blocks=4 * [num_blocks], num_channels=num_channels)
 
-        last_inp_channels = np.int(np.sum(pre_stage_channels))
+        last_inp_channels = np.int32(np.sum(pre_stage_channels))
         ocr_mid_channels = 2 * ocr_width
         ocr_key_channels = ocr_width
 

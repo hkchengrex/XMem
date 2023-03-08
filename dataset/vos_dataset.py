@@ -190,8 +190,8 @@ class VOSDataset(Dataset):
         masks = np.stack(masks, 0)
 
         # Generate one-hot ground-truth
-        cls_gt = np.zeros((self.num_frames, 384, 384), dtype=np.int)
-        first_frame_gt = np.zeros((1, self.max_num_obj, 384, 384), dtype=np.int)
+        cls_gt = np.zeros((self.num_frames, 384, 384), dtype=np.int32)
+        first_frame_gt = np.zeros((1, self.max_num_obj, 384, 384), dtype=np.int32)
         for i, l in enumerate(target_objects):
             this_mask = (masks==l)
             cls_gt[this_mask] = i+1

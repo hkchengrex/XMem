@@ -130,7 +130,7 @@ class StaticTransformDataset(Dataset):
         indices = [idx, *np.random.randint(self.__len__(), size=additional_objects)]
 
         merged_images = None
-        merged_masks = np.zeros((self.num_frames, 384, 384), dtype=np.int)
+        merged_masks = np.zeros((self.num_frames, 384, 384), dtype=np.int32)
 
         for i, list_id in enumerate(indices):
             images, masks = self._get_sample(list_id)
@@ -148,8 +148,8 @@ class StaticTransformDataset(Dataset):
         target_objects = labels.tolist()
 
         # Generate one-hot ground-truth
-        cls_gt = np.zeros((self.num_frames, 384, 384), dtype=np.int)
-        first_frame_gt = np.zeros((1, self.max_num_obj, 384, 384), dtype=np.int)
+        cls_gt = np.zeros((self.num_frames, 384, 384), dtype=np.int32)
+        first_frame_gt = np.zeros((1, self.max_num_obj, 384, 384), dtype=np.int32)
         for i, l in enumerate(target_objects):
             this_mask = (masks==l)
             cls_gt[this_mask] = i+1
