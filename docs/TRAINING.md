@@ -10,6 +10,7 @@ To train the base model on two GPUs, you can use:
 ```bash
 python -m torch.distributed.run --master_port 25763 --nproc_per_node=2 train.py --exp_id retrain --stage 03
 ```
+(**NOTE**: Unexplained accuracy decrease might occur if you are not using two GPUs to train. See https://github.com/hkchengrex/XMem/issues/71.)
 
 `master_port` needs to point to an unused port. 
 `nproc_per_node` refers to the number of GPUs to be used (specify `CUDA_VISIBLE_DEVICES` to select which GPUs to use).
