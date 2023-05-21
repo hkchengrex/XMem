@@ -56,7 +56,7 @@ It does not download BL30K because it is huge and we don't want to crash your ha
 
 ## Long-Time Video
 
-It comes from [AFB-URR](https://github.com/xmlyqing00/AFB-URR). Please following their license when using this data. We release our extended version (X3) and corresponding `_davis` versions such that the DAVIS evaluation can be used directly. They can be downloaded [[here]](TODO). The script above would also attempt to download it.
+It comes from [AFB-URR](https://github.com/xmlyqing00/AFB-URR). Please following their license when using this data. We release our extended version (X3) and corresponding `_davis` versions such that the DAVIS evaluation can be used directly. They can be downloaded [[here]](https://drive.google.com/uc?id=100MxAuV0_UL20ca5c-5CNpqQ5QYPDSoz). The script above would also attempt to download it. Use [[this script]](https://github.com/hkchengrex/XMem/blob/main/scripts/expand_long_vid.py) to expand it to (X3).
 
 ### BL30K
 
