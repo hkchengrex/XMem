@@ -218,7 +218,7 @@ for vid_reader in progressbar(meta_loader, max_value=len(meta_dataset), redirect
                 prob = torch.flip(prob, dims=[-1])
 
             # Probability mask -> index mask
-            out_mask = torch.argmax(prob, dim=0)
+            out_mask = torch.max(prob, dim=0).indices
             out_mask = (out_mask.detach().cpu().numpy()).astype(np.uint8)
 
             if args.save_scores:

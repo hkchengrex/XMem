@@ -21,13 +21,14 @@ os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
 import numpy as np
 import torch
+from torch import mps
 
-from PyQt5.QtWidgets import (QWidget, QApplication, QComboBox, QCheckBox,
+from PyQt6.QtWidgets import (QWidget, QApplication, QComboBox, QCheckBox,
     QHBoxLayout, QLabel, QPushButton, QTextEdit, QSpinBox, QFileDialog,
-    QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, QShortcut, QRadioButton)
+    QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, QRadioButton)
 
-from PyQt5.QtGui import QPixmap, QKeySequence, QImage, QTextCursor, QIcon
-from PyQt5.QtCore import Qt, QTimer
+from PyQt6.QtGui import QPixmap, QKeySequence, QImage, QTextCursor, QIcon, QShortcut
+from PyQt6.QtCore import Qt, QTimer
 
 from model.network import XMem
 
@@ -45,7 +46,7 @@ class App(QWidget):
     def __init__(self, net: XMem, 
                 resource_manager: ResourceManager, 
                 s2m_ctrl:S2MController, 
-                fbrs_ctrl:FBRSController, config):
+                fbrs_ctrl:FBRSController, config, device):
         super().__init__()
 
         self.initialized = False
@@ -56,6 +57,7 @@ class App(QWidget):
         self.processor = InferenceCore(net, config)
         self.processor.set_all_labels(list(range(1, self.num_objects+1)))
         self.res_man = resource_manager
+        self.device = device
 
         self.num_frames = len(self.res_man)
         self.height, self.width = self.res_man.h, self.res_man.w
@@ -70,14 +72,16 @@ class App(QWidget):
         self.play_button.clicked.connect(self.on_play_video)
         self.commit_button = QPushButton('Commit')
         self.commit_button.clicked.connect(self.on_commit)
+        self.export_button = QPushButton('Export Video')
+        self.export_button.clicked.connect(self.on_export_video)
 
         self.forward_run_button = QPushButton('Forward Propagate')
         self.forward_run_button.clicked.connect(self.on_forward_propagation)
-        self.forward_run_button.setMinimumWidth(200)
+        self.forward_run_button.setMinimumWidth(150)
 
         self.backward_run_button = QPushButton('Backward Propagate')
         self.backward_run_button.clicked.connect(self.on_backward_propagation)
-        self.backward_run_button.setMinimumWidth(200)
+        self.backward_run_button.setMinimumWidth(150)
 
         self.reset_button = QPushButton('Reset Frame')
         self.reset_button.clicked.connect(self.on_reset_mask)
@@ -89,26 +93,34 @@ class App(QWidget):
         self.lcd.setMaximumWidth(120)
         self.lcd.setText('{: 4d} / {: 4d}'.format(0, self.num_frames-1))
 
+        # Current Mask LCD
+        self.mask_lcd = QTextEdit()
+        self.mask_lcd.setReadOnly(False)
+        self.mask_lcd.setMaximumHeight(28)
+        self.mask_lcd.setMaximumWidth(56)
+        self.mask_lcd.setText('1')
+        self.mask_lcd.textChanged.connect(self.on_mask_lcd_change)
+
         # timeline slider
-        self.tl_slider = QSlider(Qt.Horizontal)
+        self.tl_slider = QSlider(Qt.Orientation.Horizontal)
         self.tl_slider.valueChanged.connect(self.tl_slide)
         self.tl_slider.setMinimum(0)
         self.tl_slider.setMaximum(self.num_frames-1)
         self.tl_slider.setValue(0)
-        self.tl_slider.setTickPosition(QSlider.TicksBelow)
+        self.tl_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.tl_slider.setTickInterval(1)
         
         # brush size slider
         self.brush_label = QLabel()
-        self.brush_label.setAlignment(Qt.AlignCenter)
+        self.brush_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.brush_label.setMinimumWidth(100)
         
-        self.brush_slider = QSlider(Qt.Horizontal)
+        self.brush_slider = QSlider(Qt.Orientation.Horizontal)
         self.brush_slider.valueChanged.connect(self.brush_slide)
         self.brush_slider.setMinimum(1)
         self.brush_slider.setMaximum(100)
         self.brush_slider.setValue(3)
-        self.brush_slider.setTickPosition(QSlider.TicksBelow)
+        self.brush_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.brush_slider.setTickInterval(2)
         self.brush_slider.setMinimumWidth(300)
 
@@ -142,9 +154,9 @@ class App(QWidget):
 
         # Main canvas -> QLabel
         self.main_canvas = QLabel()
-        self.main_canvas.setSizePolicy(QSizePolicy.Expanding,
-                QSizePolicy.Expanding)
-        self.main_canvas.setAlignment(Qt.AlignCenter)
+        self.main_canvas.setSizePolicy(QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Expanding)
+        self.main_canvas.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.main_canvas.setMinimumSize(100, 100)
 
         self.main_canvas.mousePressEvent = self.on_mouse_press
@@ -152,11 +164,11 @@ class App(QWidget):
         self.main_canvas.setMouseTracking(True) # Required for all-time tracking
         self.main_canvas.mouseReleaseEvent = self.on_mouse_release
 
-        # Minimap -> Also a QLbal
+        # Minimap -> Also a QLabel
         self.minimap = QLabel()
-        self.minimap.setSizePolicy(QSizePolicy.Expanding,
-                QSizePolicy.Expanding)
-        self.minimap.setAlignment(Qt.AlignTop)
+        self.minimap.setSizePolicy(QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Expanding)
+        self.minimap.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.minimap.setMinimumSize(100, 100)
 
         # Zoom-in buttons
@@ -208,24 +220,27 @@ class App(QWidget):
 
         # navigator
         navi = QHBoxLayout()
-        navi.addWidget(self.lcd)
-        navi.addWidget(self.play_button)
 
         interact_subbox = QVBoxLayout()
         interact_topbox = QHBoxLayout()
         interact_botbox = QHBoxLayout()
-        interact_topbox.setAlignment(Qt.AlignCenter)
+        interact_topbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        interact_topbox.addWidget(self.lcd)
+        interact_topbox.addWidget(self.play_button)
         interact_topbox.addWidget(self.radio_s2m)
         interact_topbox.addWidget(self.radio_fbrs)
         interact_topbox.addWidget(self.radio_free)
         interact_topbox.addWidget(self.brush_label)
+        interact_topbox.addWidget(self.reset_button)
+        interact_botbox.addWidget(QLabel('Current Mask:'))
+        interact_botbox.addWidget(self.mask_lcd)
         interact_botbox.addWidget(self.brush_slider)
+        interact_botbox.addWidget(self.export_button)
         interact_subbox.addLayout(interact_topbox)
         interact_subbox.addLayout(interact_botbox)
         navi.addLayout(interact_subbox)
 
         navi.addStretch(1)
-        navi.addWidget(self.reset_button)
 
         navi.addStretch(1)
         navi.addWidget(QLabel('Overlay Mode'))
@@ -243,14 +258,14 @@ class App(QWidget):
 
         # Minimap area
         minimap_area = QVBoxLayout()
-        minimap_area.setAlignment(Qt.AlignTop)
+        minimap_area.setAlignment(Qt.AlignmentFlag.AlignTop)
         mini_label = QLabel('Minimap')
-        mini_label.setAlignment(Qt.AlignTop)
+        mini_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         minimap_area.addWidget(mini_label)
 
         # Minimap zooming
         minimap_ctrl = QHBoxLayout()
-        minimap_ctrl.setAlignment(Qt.AlignTop)
+        minimap_ctrl.setAlignment(Qt.AlignmentFlag.AlignTop)
         minimap_ctrl.addWidget(self.zoom_p_button)
         minimap_ctrl.addWidget(self.zoom_m_button)
         minimap_area.addLayout(minimap_ctrl)
@@ -270,7 +285,7 @@ class App(QWidget):
 
         # import mask/layer
         import_area = QHBoxLayout()
-        import_area.setAlignment(Qt.AlignTop)
+        import_area.setAlignment(Qt.AlignmentFlag.AlignTop)
         import_area.addWidget(self.import_mask_button)
         import_area.addWidget(self.import_layer_button)
         minimap_area.addLayout(import_area)
@@ -289,6 +304,7 @@ class App(QWidget):
         # timer to play video
         self.timer = QTimer()
         self.timer.setSingleShot(False)
+        self.timer.timeout.connect(self.on_play_video_timer)
 
         # timer to update GPU usage
         self.gpu_timer = QTimer()
@@ -302,7 +318,7 @@ class App(QWidget):
         self.current_image = np.zeros((self.height, self.width, 3), dtype=np.uint8) 
         self.current_image_torch = None
         self.current_mask = np.zeros((self.height, self.width), dtype=np.uint8)
-        self.current_prob = torch.zeros((self.num_objects, self.height, self.width), dtype=torch.float).cuda()
+        self.current_prob = torch.zeros((self.num_objects, self.height, self.width), dtype=torch.float).to(self.device)
 
         # initialize visualization
         self.viz_mode = 'davis'
@@ -328,10 +344,11 @@ class App(QWidget):
         # Objects shortcuts
         for i in range(1, self.num_objects+1):
             QShortcut(QKeySequence(str(i)), self).activated.connect(functools.partial(self.hit_number_key, i))
+            QShortcut(QKeySequence(f"Ctrl+{i}"), self).activated.connect(functools.partial(self.hit_number_key, i))
 
         # <- and -> shortcuts
-        QShortcut(QKeySequence(Qt.Key_Left), self).activated.connect(self.on_prev_frame)
-        QShortcut(QKeySequence(Qt.Key_Right), self).activated.connect(self.on_next_frame)
+        QShortcut(QKeySequence(Qt.Key.Key_Left), self).activated.connect(self.on_prev_frame)
+        QShortcut(QKeySequence(Qt.Key.Key_Right), self).activated.connect(self.on_next_frame)
 
         self.interacted_prob = None
         self.overlay_layer = None
@@ -341,7 +358,7 @@ class App(QWidget):
         self.vis_target_objects = [1]
         # try to load the default overlay
         self._try_load_layer('./docs/ECCV-logo.png')
- 
+
         self.load_current_image_mask()
         self.show_current_frame()
         self.show()
@@ -353,7 +370,7 @@ class App(QWidget):
         self.show_current_frame()
 
     def console_push_text(self, text):
-        self.console.moveCursor(QTextCursor.End)
+        self.console.moveCursor(QTextCursor.MoveOperation.End)
         self.console.insertPlainText(text+'\n')
 
     def interaction_radio_clicked(self, event):
@@ -389,10 +406,10 @@ class App(QWidget):
 
     def load_current_torch_image_mask(self, no_mask=False):
         if self.current_image_torch is None:
-            self.current_image_torch, self.current_image_torch_no_norm = image_to_torch(self.current_image)
+            self.current_image_torch, self.current_image_torch_no_norm = image_to_torch(self.current_image, self.device)
 
         if self.current_prob is None and not no_mask:
-            self.current_prob = index_numpy_to_one_hot_torch(self.current_mask, self.num_objects+1).cuda()
+            self.current_prob = index_numpy_to_one_hot_torch(self.current_mask, self.num_objects+1).to(self.device)
 
     def compose_current_im(self):
         self.viz = get_visualization(self.viz_mode, self.current_image, self.current_mask, 
@@ -412,9 +429,9 @@ class App(QWidget):
         self.viz_with_stroke = self.viz_with_stroke*(1-brush_vis_alpha) + brush_vis_map*brush_vis_alpha
         self.viz_with_stroke = self.viz_with_stroke.astype(np.uint8)
 
-        qImg = QImage(self.viz_with_stroke.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        qImg = QImage(self.viz_with_stroke.data, width, height, bytesPerLine, QImage.Format.Format_RGB888)
         self.main_canvas.setPixmap(QPixmap(qImg.scaled(self.main_canvas.size(),
-                Qt.KeepAspectRatio, Qt.FastTransformation)))
+                Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)))
 
         self.main_canvas_size = self.main_canvas.size()
         self.image_size = qImg.size()
@@ -429,9 +446,9 @@ class App(QWidget):
 
         height, width, channel = patch.shape
         bytesPerLine = 3 * width
-        qImg = QImage(patch.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        qImg = QImage(patch.data, width, height, bytesPerLine, QImage.Format.Format_RGB888)
         self.minimap.setPixmap(QPixmap(qImg.scaled(self.minimap.size(),
-                Qt.KeepAspectRatio, Qt.FastTransformation)))
+                Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)))
 
     def update_current_image_fast(self):
         # fast path, uses gpu. Changes the image in-place to avoid copying
@@ -443,9 +460,9 @@ class App(QWidget):
         height, width, channel = self.viz.shape
         bytesPerLine = 3 * width
 
-        qImg = QImage(self.viz.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        qImg = QImage(self.viz.data, width, height, bytesPerLine, QImage.Format.Format_RGB888)
         self.main_canvas.setPixmap(QPixmap(qImg.scaled(self.main_canvas.size(),
-                Qt.KeepAspectRatio, Qt.FastTransformation)))
+                Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.FastTransformation)))
 
     def show_current_frame(self, fast=False):
         # Re-compute overlay and show the image
@@ -581,7 +598,7 @@ class App(QWidget):
         # clear
         self.interacted_prob = None
         self.reset_this_interaction()
-        
+
         self.propagating = True
         self.clear_mem_button.setEnabled(False)
         # propagate till the end
@@ -622,6 +639,7 @@ class App(QWidget):
         self.tl_slider.setValue(self.cursur)
 
     def on_next_frame(self):
+        print('next frame')
         # self.tl_slide will trigger on setValue
         self.cursur = min(self.cursur+1, self.num_frames-1)
         self.tl_slider.setValue(self.cursur)
@@ -639,6 +657,30 @@ class App(QWidget):
         else:
             self.timer.start(1000 / 30)
             self.play_button.setText('Stop Video')
+
+    def on_export_video(self):
+        # NOTE: Save visualization at the end of propagation
+        image_folder = f"{self.config['workspace']}/visualization/"
+        save_folder = self.config['workspace']
+        if os.path.exists(image_folder):
+            # Sorted so frames will be in order
+            images = [img for img in sorted(os.listdir(image_folder)) if img.endswith(".jpg")]
+            frame = cv2.imread(os.path.join(image_folder, images[0]))
+            height, width, layers = frame.shape
+            video = cv2.VideoWriter(f"{save_folder}/visualization.avi", cv2.VideoWriter_fourcc(*'MJPG'), 10, (width,height))
+            for image in images:
+                video.write(cv2.imread(os.path.join(image_folder, image)))
+            video.release()
+            self.console_push_text(f'Video exported to {self.config["workspace"]}/visualization.avi')
+        else:
+            self.console_push_text(f'No visualization images found in {image_folder}')
+
+    def on_mask_lcd_change(self):
+        mask_num = self.mask_lcd.toPlainText()
+        if mask_num.isdigit() and 1 <= int(mask_num) and int(mask_num) <= self.num_objects+1:
+            self.hit_number_key(int(mask_num))
+        else:
+            self.console_push_text(f'Error {mask_num} is not a valid mask number')
 
     def on_reset_mask(self):
         self.current_mask.fill(0)
@@ -665,12 +707,14 @@ class App(QWidget):
         self.run_button.setEnabled(boolean)
         self.tl_slider.setEnabled(boolean)
         self.play_button.setEnabled(boolean)
+        self.export_button.setEnabled(boolean)
         self.lcd.setEnabled(boolean)
 
     def hit_number_key(self, number):
         if number == self.current_object:
             return
         self.current_object = number
+        self.mask_lcd.setPlainText(str(number))
         if self.fbrs_controller is not None:
             self.fbrs_controller.unanchor()
         self.console_push_text(f'Current object changed to {number}.')
@@ -690,12 +734,12 @@ class App(QWidget):
                 (int(round(ex)), int(round(ey))), self.brush_size//2+1, 0.5, thickness=-1)
 
     def on_mouse_press(self, event):
-        if self.is_pos_out_of_bound(event.x(), event.y()):
+        if self.is_pos_out_of_bound(event.position().x(), event.position().y()):
             return
 
         # mid-click
-        if (event.button() == Qt.MidButton):
-            ex, ey = self.get_scaled_pos(event.x(), event.y())
+        if (event.button() == Qt.MouseButton.MiddleButton):
+            ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
             target_object = self.current_mask[int(ey),int(ex)]
             if target_object in self.vis_target_objects:
                 self.vis_target_objects.remove(target_object)
@@ -705,7 +749,7 @@ class App(QWidget):
             self.show_current_frame()
             return
 
-        self.right_click = (event.button() == Qt.RightButton)
+        self.right_click = (event.button() == Qt.MouseButton.RightButton)
         self.pressed = True
 
         h, w = self.height, self.width
@@ -718,7 +762,7 @@ class App(QWidget):
         if self.curr_interaction == 'Scribble':
             if last_interaction is None or type(last_interaction) != ScribbleInteraction:
                 self.complete_interaction()
-                new_interaction = ScribbleInteraction(image, torch.from_numpy(self.current_mask).float().cuda(), 
+                new_interaction = ScribbleInteraction(image, torch.from_numpy(self.current_mask).float().to(self.device), 
                         (h, w), self.s2m_controller, self.num_objects)
         elif self.curr_interaction == 'Free':
             if last_interaction is None or type(last_interaction) != FreeInteraction:
@@ -741,7 +785,7 @@ class App(QWidget):
         self.on_mouse_motion(event)
 
     def on_mouse_motion(self, event):
-        ex, ey = self.get_scaled_pos(event.x(), event.y())
+        ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
         self.last_ex, self.last_ey = ex, ey
         self.clear_brush()
         # Visualize
@@ -772,7 +816,7 @@ class App(QWidget):
             # this can happen when the initial press is out-of-bound
             return
 
-        ex, ey = self.get_scaled_pos(event.x(), event.y())
+        ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
 
         self.console_push_text('%s interaction at frame %d.' % (self.curr_interaction, self.cursur))
         interaction = self.interaction
@@ -783,18 +827,18 @@ class App(QWidget):
             if self.curr_interaction == 'Free':
                 self.clear_visualization()
         elif self.curr_interaction == 'Click':
-            ex, ey = self.get_scaled_pos(event.x(), event.y())
+            ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
             self.vis_map, self.vis_alpha = interaction.push_point(ex, ey,
                 self.right_click, (self.vis_map, self.vis_alpha))
 
-        self.interacted_prob = interaction.predict()
+        self.interacted_prob = interaction.predict().to(self.device)
         self.update_interacted_mask()
         self.update_gpu_usage()
 
         self.pressed = self.right_click = False
 
     def wheelEvent(self, event):
-        ex, ey = self.get_scaled_pos(event.x(), event.y())
+        ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
         if self.curr_interaction == 'Free':
             self.brush_slider.setValue(self.brush_slider.value() + event.angleDelta().y()//30)
         self.clear_brush()
@@ -803,7 +847,12 @@ class App(QWidget):
         self.update_minimap()
 
     def update_gpu_usage(self):
-        info = torch.cuda.mem_get_info()
+        if self.device.type == 'cuda':
+            info = torch.cuda.mem_get_info()
+        elif self.device.type == 'mps':
+            info = (0, mps.current_allocated_memory()) # NOTE: torch.mps does not support accessing free and total memory
+        else:
+            info = (0, 0)
         global_free, global_total = info
         global_free /= (2**30)
         global_total /= (2**30)
@@ -861,7 +910,10 @@ class App(QWidget):
 
     def on_clear_memory(self):
         self.processor.clear_memory()
-        torch.cuda.empty_cache()
+        if self.device.type == 'cuda':
+            torch.cuda.empty_cache()
+        elif self.device.type == 'mps':
+            mps.empty_cache()
         self.update_gpu_usage()
         self.update_memory_size()
 
@@ -924,7 +976,7 @@ class App(QWidget):
             else:
                 self.console_push_text(f'Layer file {file_name} loaded.')
                 self.overlay_layer = layer
-                self.overlay_layer_torch = torch.from_numpy(layer).float().cuda()/255
+                self.overlay_layer_torch = torch.from_numpy(layer).float().to(self.device)/255
                 self.show_current_frame()
         except FileNotFoundError:
             self.console_push_text(f'{file_name} not found.')

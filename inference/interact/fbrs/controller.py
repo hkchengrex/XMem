@@ -1,4 +1,5 @@
 import torch
+from torch import mps
 
 from ..fbrs.inference import clicker
 from ..fbrs.inference.predictors import get_predictor
@@ -35,7 +36,10 @@ class InteractiveController:
         click = clicker.Click(is_positive=is_positive, coords=(y, x))
         self.clicker.add_click(click)
         pred = self.predictor.get_prediction(self.clicker)
-        torch.cuda.empty_cache()
+        if self.device.type == 'cuda':
+            torch.cuda.empty_cache()
+        elif self.device.type == 'mps':
+            mps.empty_cache()
 
         if self.probs_history:
             self.probs_history.append((self.probs_history[-1][0], pred))

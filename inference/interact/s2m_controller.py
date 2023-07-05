@@ -19,6 +19,7 @@ class S2MController:
         self.device = device
 
     def interact(self, image, prev_mask, scr_mask):
+        print(self.device)
         image = image.to(self.device, non_blocking=True)
         prev_mask = prev_mask.unsqueeze(0)
 
