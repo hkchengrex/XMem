@@ -240,6 +240,18 @@ class App(QWidget):
         interact_subbox.addLayout(interact_botbox)
         navi.addLayout(interact_subbox)
 
+        index = interact_topbox.count()
+        while(index > 0):
+            index -=1
+            myWidget = interact_topbox.itemAt(index).widget()
+            myWidget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        index = interact_botbox.count()
+        while(index > 0):
+            index -=1
+            myWidget = interact_botbox.itemAt(index).widget()
+            myWidget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+
         navi.addStretch(1)
 
         navi.addStretch(1)
