@@ -94,12 +94,13 @@ class App(QWidget):
         self.lcd.setText('{: 4d} / {: 4d}'.format(0, self.num_frames-1))
 
         # Current Mask LCD
-        self.mask_lcd = QTextEdit()
-        self.mask_lcd.setReadOnly(False)
-        self.mask_lcd.setMaximumHeight(28)
-        self.mask_lcd.setMaximumWidth(56)
-        self.mask_lcd.setText('1')
-        self.mask_lcd.textChanged.connect(self.on_mask_lcd_change)
+        self.object_dial = QSpinBox()
+        self.object_dial.setReadOnly(False)
+        self.object_dial.setMaximumHeight(28)
+        self.object_dial.setMaximumWidth(56)
+        self.object_dial.setMinimum(1)
+        self.object_dial.setMaximum(self.num_objects)
+        self.object_dial.editingFinished.connect(self.on_object_dial_change)
 
         # timeline slider
         self.tl_slider = QSlider(Qt.Orientation.Horizontal)
@@ -232,7 +233,7 @@ class App(QWidget):
         interact_topbox.addWidget(self.radio_free)
         interact_topbox.addWidget(self.reset_button)
         interact_botbox.addWidget(QLabel('Current Object ID:'))
-        interact_botbox.addWidget(self.mask_lcd)
+        interact_botbox.addWidget(self.object_dial)
         interact_botbox.addWidget(self.brush_label)
         interact_botbox.addWidget(self.brush_slider)
         interact_subbox.addLayout(interact_topbox)
@@ -690,12 +691,9 @@ class App(QWidget):
         else:
             self.console_push_text(f'No visualization images found in {image_folder}')
 
-    def on_mask_lcd_change(self):
-        mask_num = self.mask_lcd.toPlainText()
-        if mask_num.isdigit() and 1 <= int(mask_num) and int(mask_num) <= self.num_objects+1:
-            self.hit_number_key(int(mask_num))
-        else:
-            self.console_push_text(f'Error {mask_num} is not a valid mask number')
+    def on_object_dial_change(self):
+        object_id = self.object_dial.value()
+        self.hit_number_key(object_id)
 
     def on_reset_mask(self):
         self.current_mask.fill(0)
@@ -729,7 +727,7 @@ class App(QWidget):
         if number == self.current_object:
             return
         self.current_object = number
-        self.mask_lcd.setPlainText(str(number))
+        self.object_dial.setValue(number)
         if self.fbrs_controller is not None:
             self.fbrs_controller.unanchor()
         self.console_push_text(f'Current object changed to {number}.')
