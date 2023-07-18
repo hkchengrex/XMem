@@ -72,8 +72,8 @@ class App(QWidget):
         self.play_button.clicked.connect(self.on_play_video)
         self.commit_button = QPushButton('Commit')
         self.commit_button.clicked.connect(self.on_commit)
-        self.export_button = QPushButton('Export Video')
-        self.export_button.clicked.connect(self.on_export_video)
+        self.export_button = QPushButton('Export Overlays as Video')
+        self.export_button.clicked.connect(self.on_export_visualization)
 
         self.forward_run_button = QPushButton('Forward Propagate')
         self.forward_run_button.clicked.connect(self.on_forward_propagation)
@@ -113,7 +113,7 @@ class App(QWidget):
         # brush size slider
         self.brush_label = QLabel()
         self.brush_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.brush_label.setMinimumWidth(100)
+        self.brush_label.setMinimumWidth(150)
         
         self.brush_slider = QSlider(Qt.Orientation.Horizontal)
         self.brush_slider.valueChanged.connect(self.brush_slide)
@@ -230,40 +230,42 @@ class App(QWidget):
         interact_topbox.addWidget(self.radio_s2m)
         interact_topbox.addWidget(self.radio_fbrs)
         interact_topbox.addWidget(self.radio_free)
-        interact_topbox.addWidget(self.brush_label)
         interact_topbox.addWidget(self.reset_button)
-        interact_botbox.addWidget(QLabel('Current Mask:'))
+        interact_botbox.addWidget(QLabel('Current Object ID:'))
         interact_botbox.addWidget(self.mask_lcd)
+        interact_botbox.addWidget(self.brush_label)
         interact_botbox.addWidget(self.brush_slider)
-        interact_botbox.addWidget(self.export_button)
         interact_subbox.addLayout(interact_topbox)
         interact_subbox.addLayout(interact_botbox)
         navi.addLayout(interact_subbox)
 
-        index = interact_topbox.count()
-        while(index > 0):
-            index -=1
-            myWidget = interact_topbox.itemAt(index).widget()
-            myWidget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        index = interact_botbox.count()
-        while(index > 0):
-            index -=1
-            myWidget = interact_botbox.itemAt(index).widget()
-            myWidget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-
+        apply_fixed_size_policy = lambda x: x.setSizePolicy(QSizePolicy.Policy.Fixed, 
+                                                            QSizePolicy.Policy.Fixed)
+        apply_to_all_children_widget(interact_topbox, apply_fixed_size_policy)
+        apply_to_all_children_widget(interact_botbox, apply_fixed_size_policy)
 
         navi.addStretch(1)
-
         navi.addStretch(1)
-        navi.addWidget(QLabel('Overlay Mode'))
-        navi.addWidget(self.combo)
-        navi.addWidget(QLabel('Save overlay during propagation'))
-        navi.addWidget(self.save_visualization_checkbox)
+        overlay_subbox = QVBoxLayout()
+        overlay_topbox = QHBoxLayout()
+        overlay_botbox = QHBoxLayout()
+        overlay_botbox.setAlignment(Qt.AlignmentFlag.AlignRight)
+        overlay_topbox.addWidget(QLabel('Overlay Mode'))
+        overlay_topbox.addWidget(self.combo)
+        overlay_topbox.addWidget(QLabel('Save overlay during propagation'))
+        overlay_topbox.addWidget(self.save_visualization_checkbox)
+        overlay_botbox.addWidget(self.export_button)
+        overlay_subbox.addLayout(overlay_topbox)
+        overlay_subbox.addLayout(overlay_botbox)
+        navi.addLayout(overlay_subbox)
+        apply_to_all_children_widget(overlay_topbox, apply_fixed_size_policy)
+        apply_to_all_children_widget(overlay_botbox, apply_fixed_size_policy)
+
         navi.addStretch(1)
         navi.addWidget(self.commit_button)
         navi.addWidget(self.forward_run_button)
         navi.addWidget(self.backward_run_button)
-
+        
         # Drawing area, main canvas and minimap
         draw_area = QHBoxLayout()
         draw_area.addWidget(self.main_canvas, 4)
@@ -562,7 +564,7 @@ class App(QWidget):
 
     def brush_slide(self):
         self.brush_size = self.brush_slider.value()
-        self.brush_label.setText('Brush size: %d' % self.brush_size)
+        self.brush_label.setText('Brush size (in free mode): %d' % self.brush_size)
         try:
             if type(self.interaction) == FreeInteraction:
                 self.interaction.set_size(self.brush_size)
@@ -651,7 +653,6 @@ class App(QWidget):
         self.tl_slider.setValue(self.cursur)
 
     def on_next_frame(self):
-        print('next frame')
         # self.tl_slide will trigger on setValue
         self.cursur = min(self.cursur+1, self.num_frames-1)
         self.tl_slider.setValue(self.cursur)
@@ -670,20 +671,22 @@ class App(QWidget):
             self.timer.start(1000 / 30)
             self.play_button.setText('Stop Video')
 
-    def on_export_video(self):
+    def on_export_visualization(self):
         # NOTE: Save visualization at the end of propagation
         image_folder = f"{self.config['workspace']}/visualization/"
         save_folder = self.config['workspace']
         if os.path.exists(image_folder):
             # Sorted so frames will be in order
+            self.console_push_text(f'Exporting visualization to {self.config["workspace"]}/visualization.mp4')
             images = [img for img in sorted(os.listdir(image_folder)) if img.endswith(".jpg")]
             frame = cv2.imread(os.path.join(image_folder, images[0]))
             height, width, layers = frame.shape
-            video = cv2.VideoWriter(f"{save_folder}/visualization.avi", cv2.VideoWriter_fourcc(*'MJPG'), 10, (width,height))
+            # 10 is the FPS -- change if needed
+            video = cv2.VideoWriter(f"{save_folder}/visualization.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 10, (width,height))
             for image in images:
                 video.write(cv2.imread(os.path.join(image_folder, image)))
             video.release()
-            self.console_push_text(f'Video exported to {self.config["workspace"]}/visualization.avi')
+            self.console_push_text(f'Visualization exported to {self.config["workspace"]}/visualization.mp4')
         else:
             self.console_push_text(f'No visualization images found in {image_folder}')
 

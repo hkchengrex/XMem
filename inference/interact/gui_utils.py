@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QProgressBar)
+from PyQt6.QtWidgets import (QBoxLayout, QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QProgressBar)
 
 
 def create_parameter_box(min_val, max_val, text, step=1, callback=None):
@@ -38,3 +38,9 @@ def create_gauge(text):
     layout.addWidget(gauge)
 
     return gauge, layout
+
+
+def apply_to_all_children_widget(layout, func):
+    # deliberately non-recursive
+    for i in range(layout.count()):
+        func(layout.itemAt(i).widget())
