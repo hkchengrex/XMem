@@ -21,7 +21,10 @@ os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
 import numpy as np
 import torch
-from torch import mps
+try:
+    from torch import mps
+except:
+    print('torch.MPS not available.')
 
 from PyQt6.QtWidgets import (QWidget, QApplication, QComboBox, QCheckBox,
     QHBoxLayout, QLabel, QPushButton, QTextEdit, QSpinBox, QFileDialog,

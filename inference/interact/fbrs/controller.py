@@ -1,5 +1,8 @@
 import torch
-from torch import mps
+try:
+    from torch import mps
+except:
+    pass
 
 from ..fbrs.inference import clicker
 from ..fbrs.inference.predictors import get_predictor
