@@ -61,6 +61,8 @@ We do not provide any tools for getting quantitative results here. We used the f
 
 (For the Long-Time Video dataset, point `--davis_path` to either `long_video_davis` or `long_video_davis_x3`)
 
+You can also use my own script which evaluates much faster and produces identical results: [vos-benchmark](https://github.com/hkchengrex/vos-benchmark).
+
 ## On custom data
 
 Structure your custom data like this:
