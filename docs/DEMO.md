@@ -36,7 +36,7 @@ python interactive_demo.py --video [path to the video] --num_objects 4
 
 * Use the slider to change the current frame. "Play Video" automatically progresses the video.
 * Select interaction type: "scribble", "click", or "free". Both scribble and "free" (free-hand drawing) modify an existing mask. Using "click" on an existing object mask (i.e., a mask from propagation or other interaction methods) will reset the mask. This is because f-BRS does not take an existing mask as input.
-* Select the target object using the number keys. "1" corresponds to the first object, etc. You need to specify the maximum number of objects when you start the program through the command line.
+* Select the target object using the number keys or the object dial. "1" corresponds to the first object, etc. You need to specify the maximum number of objects when you start the program through the command line. On Mac, you can use ctrl+number to select the object.
 * Use propagate forward/backward to let XMem do the job. Pause when correction is needed. It will only automatically stops when it hits the end of the video.
 * Make sure all objects are correctly labeled before propagating. The program doesn't care which object you have interacted with -- it treats everything as user-provided inputs. Not labelling an object implicitly means that it is part of the background.
 * The memory bank might be "polluted" by bad memory frames. Feel free to hit clear memory to erase that. Propagation runs faster with a small memory bank.
@@ -53,6 +53,6 @@ python interactive_demo.py --video [path to the video] --num_objects 4
    - Make sure you specified `--num_objects`. We ignore object IDs that exceed `num_objects`.
 2. The GUI feels slow!
    - The GUI needs to read/write images and masks on-the-go. Ideally this can be implemented with multiple threads with look-ahead but I didn't. The overheads will be smaller if you place the `workspace` on a SSD. You can also use a ram disk. `eval.py` will almost certainly be faster.
-   - It takes more time to process more objects. This depends on `num_objects`, but not the actual number of objects that the user has annotated. *This does not mean that running time is directly proportional to the number of objects. There is significant shared computation.*
+   - It takes more time to process more objects. This depends on `num_objects`, not the actual number of objects that the user has annotated. *This does not mean that running time is directly proportional to the number of objects. There is significant shared computation.*
 3. Can I run this on a remote server?
    - X11 forwarding should be possible. I have not tried this and would love to know if it works for you.

@@ -15,7 +15,7 @@ def image_to_torch(frame: np.ndarray, device='cuda'):
     return frame_norm, frame
 
 def torch_prob_to_numpy_mask(prob):
-    mask = torch.argmax(prob, dim=0)
+    mask = torch.max(prob, dim=0).indices
     mask = mask.cpu().numpy().astype(np.uint8)
     return mask
 
@@ -26,16 +26,24 @@ def index_numpy_to_one_hot_torch(mask, num_classes):
 """
 Some constants fro visualization
 """
+try:
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+except:
+    device = torch.device("cpu")
+
 color_map_np = np.frombuffer(davis_palette, dtype=np.uint8).reshape(-1, 3).copy()
 # scales for better visualization
 color_map_np = (color_map_np.astype(np.float32)*1.5).clip(0, 255).astype(np.uint8)
 color_map = color_map_np.tolist()
-if torch.cuda.is_available():
-    color_map_torch = torch.from_numpy(color_map_np).cuda() / 255
+color_map_torch = torch.from_numpy(color_map_np).to(device) / 255
 
 grayscale_weights = np.array([[0.3,0.59,0.11]]).astype(np.float32)
-if torch.cuda.is_available():
-    grayscale_weights_torch = torch.from_numpy(grayscale_weights).cuda().unsqueeze(0)
+grayscale_weights_torch = torch.from_numpy(grayscale_weights).to(device).unsqueeze(0)
 
 def get_visualization(mode, image, mask, layer, target_object):
     if mode == 'fade':
@@ -112,7 +120,7 @@ def overlay_davis_torch(image, mask, alpha=0.5, fade=False):
     # Changes the image in-place to avoid copying
     image = image.permute(1, 2, 0)
     im_overlay = image
-    mask = torch.argmax(mask, dim=0)
+    mask = torch.max(mask, dim=0).indices
 
     colored_mask = color_map_torch[mask]
     foreground = image*alpha + (1-alpha)*colored_mask

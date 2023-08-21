@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QProgressBar)
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (QBoxLayout, QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QProgressBar)
 
 
 def create_parameter_box(min_val, max_val, text, step=1, callback=None):
@@ -10,12 +10,12 @@ def create_parameter_box(min_val, max_val, text, step=1, callback=None):
     dial.setMaximumWidth(150)
     dial.setMinimum(min_val)
     dial.setMaximum(max_val)
-    dial.setAlignment(Qt.AlignRight)
+    dial.setAlignment(Qt.AlignmentFlag.AlignRight)
     dial.setSingleStep(step)
     dial.valueChanged.connect(callback)
 
     label = QLabel(text)
-    label.setAlignment(Qt.AlignRight)
+    label.setAlignment(Qt.AlignmentFlag.AlignRight)
 
     layout.addWidget(label)
     layout.addWidget(dial)
@@ -29,12 +29,18 @@ def create_gauge(text):
     gauge = QProgressBar()
     gauge.setMaximumHeight(28)
     gauge.setMaximumWidth(200)
-    gauge.setAlignment(Qt.AlignCenter)
+    gauge.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     label = QLabel(text)
-    label.setAlignment(Qt.AlignRight)
+    label.setAlignment(Qt.AlignmentFlag.AlignRight)
 
     layout.addWidget(label)
     layout.addWidget(gauge)
 
     return gauge, layout
+
+
+def apply_to_all_children_widget(layout, func):
+    # deliberately non-recursive
+    for i in range(layout.count()):
+        func(layout.itemAt(i).widget())
