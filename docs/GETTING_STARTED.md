@@ -1,6 +1,6 @@
 # Getting Started
 
-Our code is tested on Ubuntu. I have briefly tested the GUI on Windows (with a PyQt5 fix in the heading of interactive_demo.py).
+Our code is tested on Ubuntu. I have briefly tested the GUI on Windows. Might also work on MAC (#103) but I haven't tested.
 
 ## Requirements
 
