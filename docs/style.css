@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&display=swap');
+
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Source Sans 3', sans-serif;
   font-size:18px;
   margin-left: auto;
   margin-right: auto;
-  font-weight: 300;
+  font-weight: 400;
   height: 100%;
   max-width: 1000px;
 }

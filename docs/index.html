@@ -12,9 +12,6 @@
     gtag('config', 'G-E4PHBZXG5S');
     </script>
 
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap" rel="stylesheet">
-
 	<title>XMem</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -161,11 +158,14 @@
 
     <br><br>
 
-    <div style="font-size: 14px;">
-        Contact: Ho Kei (Rex) Cheng hkchengrex@gmail.com
+    <div>
+        Contact: Ho Kei (Rex) Cheng
+        <div id="mail"></div>
+        <script>
+            document.querySelector("#mail").innerText = ["hkchengrex", "gmail.com"].join("@")
+        </script>
         <br>
     </div>
-
     <br><br>
 
 </div>
