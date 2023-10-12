@@ -8,6 +8,9 @@ from os import path
 if 'QT_QPA_PLATFORM_PLUGIN_PATH' not in os.environ:
     os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = ''
 
+import signal
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
 import sys
 from argparse import ArgumentParser
 
@@ -18,7 +21,7 @@ from inference.interact.s2m_controller import S2MController
 from inference.interact.fbrs_controller import FBRSController
 from inference.interact.s2m.s2m_network import deeplabv3plus_resnet50 as S2M
 
-from PyQt6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from inference.interact.gui import App
 from inference.interact.resource_manager import ResourceManager
 from contextlib import nullcontext

@@ -1,5 +1,5 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QBoxLayout, QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QProgressBar)
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QBoxLayout, QHBoxLayout, QLabel, QSpinBox, QVBoxLayout, QProgressBar)
 
 
 def create_parameter_box(min_val, max_val, text, step=1, callback=None):

@@ -26,12 +26,12 @@ try:
 except:
     print('torch.MPS not available.')
 
-from PyQt6.QtWidgets import (QWidget, QApplication, QComboBox, QCheckBox,
+from PySide6.QtWidgets import (QWidget, QApplication, QComboBox, QCheckBox,
     QHBoxLayout, QLabel, QPushButton, QTextEdit, QSpinBox, QFileDialog,
     QPlainTextEdit, QVBoxLayout, QSizePolicy, QButtonGroup, QSlider, QRadioButton)
 
-from PyQt6.QtGui import QPixmap, QKeySequence, QImage, QTextCursor, QIcon, QShortcut
-from PyQt6.QtCore import Qt, QTimer
+from PySide6.QtGui import QPixmap, QKeySequence, QImage, QTextCursor, QIcon, QShortcut
+from PySide6.QtCore import Qt, QTimer
 
 from model.network import XMem
 
@@ -672,7 +672,7 @@ class App(QWidget):
             self.timer.stop()
             self.play_button.setText('Play Video')
         else:
-            self.timer.start(1000 / 30)
+            self.timer.start(1000 // 30)
             self.play_button.setText('Stop Video')
 
     def on_export_visualization(self):
