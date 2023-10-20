@@ -1,5 +1,7 @@
 # XMem: Long-Term Video Object Segmentation with an Atkinson-Shiffrin Memory Model
 
+## New VOS project: Putting the Object Back into Video Object Segmentation: https://github.com/hkchengrex/Cutie
+
 ## New project: Open-world video segmentation with XMem: https://github.com/hkchengrex/Tracking-Anything-with-DEVA
 
 [Ho Kei Cheng](https://hkchengrex.github.io/), [Alexander Schwing](https://www.alexander-schwing.de/)
