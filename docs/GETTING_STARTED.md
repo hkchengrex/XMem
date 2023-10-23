@@ -14,7 +14,7 @@ Our code is tested on Ubuntu. I have briefly tested the GUI on Windows. Might al
 
 I recommend either softlinking (`ln -s`) existing data or use the provided `scripts/download_datasets.py` to structure the datasets as our format.
 
-`python -m scripts.download_dataset`
+`python -m scripts.download_datasets`
 
 The structure is the same as the one in STCN -- you can place XMem in the same folder as STCN and it will work.
 The script uses Google Drive and sometimes fails when certain files are blocked from automatic download. You would have to do some manual work in that case.
