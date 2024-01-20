@@ -63,6 +63,12 @@ For training, see [TRAINING.md](docs/TRAINING.md).
 
 For inference, see [INFERENCE.md](docs/INFERENCE.md).
 
+
+### Related projects/extensions:
+1. [Track Anything](https://github.com/gaomingqi/Track-Anything)
+2. [DEVA](https://github.com/hkchengrex/Tracking-Anything-with-DEVA)
+3. [AutoTrackAnything](https://github.com/licksylick/AutoTrackAnything)
+
 ### Citation
 
 Please cite our paper if you find this repo useful!
