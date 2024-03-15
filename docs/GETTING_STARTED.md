@@ -62,3 +62,4 @@ It comes from [AFB-URR](https://github.com/xmlyqing00/AFB-URR). Please following
 
 You can either use the automatic script `download_bl30k.py` or download it manually from [MiVOS](https://github.com/hkchengrex/MiVOS/#bl30k). Note that each segment is about 115GB in size -- 700GB in total. You are going to need ~1TB of free disk space to run the script (including extraction buffer).
 The script uses Google Drive and sometimes fails when certain files are blocked from automatic download. You would have to do some manual work in that case.
+**Google might block the Google Drive link. You can 1) make a shortcut of the folder to your own Google Drive, and 2) use `rclone` to copy from your own Google Drive (would not count towards your storage limit).**
